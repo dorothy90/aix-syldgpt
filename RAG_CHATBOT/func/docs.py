@@ -1,18 +1,57 @@
 # 의존: faiss-cpu, numpy, langchain_community, langchain
-import faiss, numpy as np
-from langchain_community.vectorstores import FAISS
-from langchain.docstore.in_memory import InMemoryDocstore
-from langchain.schema import Document
-from pymongo import MongoClient
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
-from operator import itemgetter
-from pathlib import Path
+
+# %%
 import os
-from langchain import hub
-from langchain.embeddings.cache import CacheBackedEmbeddings
-from langchain.storage import LocalFileStore
+from pathlib import Path
+from operator import itemgetter
+
+import faiss
+import numpy as np
+from dotenv import load_dotenv
+from pymongo import MongoClient
+
+from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import load_prompt
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_community.vectorstores import FAISS
+from langchain_community.docstore.in_memory import InMemoryDocstore
+
+load_dotenv(override=True)
+
+RETRIEVE_CHAIN_MODEL = os.getenv("RETRIEVE_CHAIN_MODEL")
+EMBEDDINGS_MODEL_NAME = os.getenv("EMBEDDINGS_MODEL_NAME")
+
+
+# 호환성 임포트 유틸리티
+def _try_import_class(module_paths, class_name):
+    """여러 모듈 경로에서 클래스 import 시도"""
+    for path in module_paths:
+        try:
+            module = __import__(path, fromlist=[class_name])
+            return getattr(module, class_name)
+        except (ImportError, AttributeError):
+            continue
+    return None
+
+
+# CacheBackedEmbeddings 호환 임포트 (버전별 경로)
+_CacheBackedEmbeddings = _try_import_class(
+    [
+        "langchain.storage",
+        "langchain_core.stores",
+        "langchain.embeddings",
+        "langchain.embeddings.cache",
+    ],
+    "CacheBackedEmbeddings",
+)
+
+# LocalFileStore 호환 임포트 (버전별 경로)
+_LocalFileStore = _try_import_class(
+    ["langchain_community.storage", "langchain.storage"],
+    "LocalFileStore",
+)
 
 
 class NormalizingEmbeddings(Embeddings):
@@ -23,7 +62,7 @@ class NormalizingEmbeddings(Embeddings):
     def _normalize(text: str) -> str:
         q = str(text).replace("\r\n", "\n").replace("\r", "\n")
         q = "\n".join(line.rstrip() for line in q.split("\n")).strip()
-        return q
+        return q.casefold()
 
     def embed_query(self, text):
         return self.underlying.embed_query(self._normalize(text))
@@ -35,11 +74,11 @@ class NormalizingEmbeddings(Embeddings):
 
 class MongoEmbeddingRetrievalChain:
     def __init__(self):
-        self.embeddings = "qwen/qwen3-embedding-8b"
+        self.embeddings = EMBEDDINGS_MODEL_NAME
         self.cache_dir = Path(".cache/embeddings")
         self.index_dir = Path(".cache/faiss_index")
-        self.k = 15
-        self.model_name = "gpt-4.1"
+        self.k = 10
+        self.model_name = RETRIEVE_CHAIN_MODEL
         self.temperature = 0
         self.prompt = "teddynote/rag-prompt"
         self.cache_dir = Path(".cache/embeddings")
@@ -48,7 +87,10 @@ class MongoEmbeddingRetrievalChain:
         self.base_url = os.getenv("OPENROUTER_BASE_URL")
 
     def create_prompt(self):
-        return hub.pull(self.prompt)
+        return load_prompt(
+            "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/prompts/qa_prompt.yaml",
+            encoding="utf-8",
+        )
 
     def create_model(self):
         return ChatOpenAI(
@@ -71,7 +113,11 @@ class MongoEmbeddingRetrievalChain:
         model = self.create_model()
         prompt = self.create_prompt()
         self.chain = (
-            {"question": itemgetter("question"), "context": itemgetter("context")}
+            {
+                "question": itemgetter("question"),
+                "context": itemgetter("context"),
+                "chat_history": itemgetter("chat_history"),
+            }
             | prompt
             | model
             | StrOutputParser()
@@ -79,32 +125,31 @@ class MongoEmbeddingRetrievalChain:
         return self
 
     def create_embedding(self):
+        """임베딩 모델 생성 (캐싱 지원 시 자동 활성화)"""
         try:
-            # 캐시 디렉토리 생성
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
-
-            # 기본 임베딩 모델 생성 (OpenRouter 설정 포함)
+            # 기본 임베딩 모델 생성
             underlying_embeddings = OpenAIEmbeddings(
                 model=self.embeddings,
                 openai_api_key=self.api_key,
                 openai_api_base=self.base_url,
             )
 
-            # 파일 기반 캐시 스토어 생성
-            store = LocalFileStore(str(self.cache_dir))
+            # 캐싱 지원 여부 확인 및 적용
+            if _CacheBackedEmbeddings and _LocalFileStore:
+                self.cache_dir.mkdir(parents=True, exist_ok=True)
+                store = _LocalFileStore(str(self.cache_dir))
+                return _CacheBackedEmbeddings.from_bytes_store(
+                    NormalizingEmbeddings(underlying_embeddings),
+                    store,
+                    namespace=self.embeddings,
+                    key_encoder="sha256",
+                )
 
-            # 캐시 기반 임베딩 생성 (SHA-256 사용으로 보안 강화)
-            cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
-                NormalizingEmbeddings(underlying_embeddings),
-                store,
-                namespace=self.embeddings,
-                key_encoder="sha256",
-            )
+            # 캐싱 미지원 시 기본 임베딩 반환
+            return underlying_embeddings
 
-            return cached_embeddings
         except Exception as e:
-            print(f"Warning: Failed to create cached embeddings: {e}")
-            print("Falling back to basic OpenAI embeddings without caching")
+            # 예외 발생 시 기본 임베딩으로 폴백
             return OpenAIEmbeddings(
                 model=self.embeddings,
                 openai_api_key=self.api_key,

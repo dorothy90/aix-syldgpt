@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 # API KEY 정보로드
 load_dotenv(override=True)
+vl_model_name = os.getenv("VL_MODEL_NAME")
 
 
 # %%
@@ -59,7 +60,7 @@ def describe_image(image_path):
     with open(image_path, "rb") as img_file:
         b64_img = base64.b64encode(img_file.read()).decode()
         response = client.chat.completions.create(
-            model="qwen/qwen3-vl-30b-a3b-instruct",
+            model=vl_model_name,
             messages=[
                 {
                     "role": "user",
@@ -169,6 +170,7 @@ for i, doc in enumerate(results, 1):
 
 # %%
 from pymongo import MongoClient
+
 # MongoDB 연결
 
 mongo_client = MongoClient("mongodb://localhost:27017/")

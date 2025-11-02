@@ -16,7 +16,7 @@ import faiss
 # %%
 # API KEY 정보로드
 load_dotenv(override=True)
-
+embeddings_model_name = os.getenv("EMBEDDINGS_MODEL_NAME")
 # MongoDB 연결
 mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client["document_vectorstore"]
@@ -24,7 +24,7 @@ collection = db["embeddings"]
 
 # %%
 text_embedder = OpenAIEmbeddings(
-    model="qwen/qwen3-embedding-8b",
+    model=embeddings_model_name,
     openai_api_key=os.getenv("OPENROUTER_API_KEY"),
     openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
 )
@@ -107,7 +107,7 @@ class UniversalFAISSRetriever:
         # - 각 라인 끝 공백 제거, 전체 앞뒤 공백 제거
         q = str(query_text).replace("\r\n", "\n").replace("\r", "\n")
         q = "\n".join(line.rstrip() for line in q.split("\n")).strip()
-        normalized_query = q
+        normalized_query = q.casefold()
 
         # 쿼리 임베딩 생성
         query_embedding = self.embedder.embed_query(normalized_query)
@@ -192,21 +192,7 @@ retriever = UniversalFAISSRetriever(
 
 # 검색 테스트
 query = """
-연관키워드: 데이터 수집, 웹 스크래핑, 검색 엔진
-
-
-
-Word2Vec
-
-
-
-정의: Word2Vec은 단어를 벡터 공간에 매핑하여 단어 간의 의미적 관계를 나타내는 자연어 처리 기술입니다. 이는 단어의 문맥적 유사성을 기반으로 벡터를 생성합니다.
-
-예시: Word2Vec 모델에서 "왕"과 "여왕"은 서로 가까운 위치에 벡터로 표현됩니다.
-
-연관키워드: 자연어 처리, 임베딩, 의미론적 유사성
-
-LLM (Large Language Model)
+word2vec이 뭐야
 """
 
 # 전체 문서에서 검색

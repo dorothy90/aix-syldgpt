@@ -14,10 +14,11 @@ import numpy as np
 # %%
 # API KEY 정보로드
 load_dotenv(override=True)
-
+embeddings_model_name = os.getenv("EMBEDDINGS_MODEL_NAME")
+vl_model_name = os.getenv("VL_MODEL_NAME")
 # 클라이언트 설정
 text_embedder = OpenAIEmbeddings(
-    model="qwen/qwen3-embedding-8b",
+    model=embeddings_model_name,
     openai_api_key=os.getenv("OPENROUTER_API_KEY"),
     openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
 )
@@ -26,6 +27,14 @@ vision_client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url=os.getenv("OPENROUTER_BASE_URL"),
 )
+
+
+# 검색/임베딩용 공통 정규화 함수 (대/소문자 무시)
+def normalize_text(text: str) -> str:
+    q = str(text).replace("\r\n", "\n").replace("\r", "\n")
+    q = "\n".join(line.rstrip() for line in q.split("\n")).strip()
+    return q.casefold()
+
 
 # MongoDB 연결
 mongo_client = MongoClient("mongodb://localhost:27017/")
@@ -74,7 +83,7 @@ def describe_image(image_path):
     with open(image_path, "rb") as img_file:
         b64_img = base64.b64encode(img_file.read()).decode()
         response = vision_client.chat.completions.create(
-            model="qwen/qwen3-vl-30b-a3b-instruct",
+            model=vl_model_name,
             messages=[
                 {
                     "role": "user",
@@ -417,8 +426,10 @@ def process_and_store_document(
 
         # MongoDB에 저장
         for idx, doc in enumerate(documents, 1):
-            # 임베딩 생성
-            embedding_vector = text_embedder.embed_query(doc.page_content)
+            # 임베딩 생성 (대/소문자 무시 정규화 적용)
+            embedding_vector = text_embedder.embed_query(
+                normalize_text(doc.page_content)
+            )
 
             # MongoDB 문서 구조
             mongo_doc = {
@@ -477,7 +488,7 @@ if __name__ == "__main__":
     # 여러 문서 처리
     files_to_process = [
         # "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/files/example.pptx",
-        # "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/files/people.json",
+        "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/files/people.json",
         "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/files/sample-word-document.docx",
         # "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/files/titanic.xlsx",
         # "/path/to/your/document.pdf",
