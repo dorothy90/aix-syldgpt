@@ -12,6 +12,25 @@ import os
 from langchain import hub
 from langchain.embeddings.cache import CacheBackedEmbeddings
 from langchain.storage import LocalFileStore
+from langchain_core.embeddings import Embeddings
+
+
+class NormalizingEmbeddings(Embeddings):
+    def __init__(self, underlying: Embeddings):
+        self.underlying = underlying
+
+    @staticmethod
+    def _normalize(text: str) -> str:
+        q = str(text).replace("\r\n", "\n").replace("\r", "\n")
+        q = "\n".join(line.rstrip() for line in q.split("\n")).strip()
+        return q
+
+    def embed_query(self, text):
+        return self.underlying.embed_query(self._normalize(text))
+
+    def embed_documents(self, texts):
+        normalized = [self._normalize(t) for t in texts]
+        return self.underlying.embed_documents(normalized)
 
 
 class MongoEmbeddingRetrievalChain:
@@ -19,7 +38,7 @@ class MongoEmbeddingRetrievalChain:
         self.embeddings = "qwen/qwen3-embedding-8b"
         self.cache_dir = Path(".cache/embeddings")
         self.index_dir = Path(".cache/faiss_index")
-        self.k = 8
+        self.k = 15
         self.model_name = "gpt-4.1"
         self.temperature = 0
         self.prompt = "teddynote/rag-prompt"
@@ -76,7 +95,7 @@ class MongoEmbeddingRetrievalChain:
 
             # 캐시 기반 임베딩 생성 (SHA-256 사용으로 보안 강화)
             cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
-                underlying_embeddings,
+                NormalizingEmbeddings(underlying_embeddings),
                 store,
                 namespace=self.embeddings,
                 key_encoder="sha256",
