@@ -1,0 +1,2 @@
+## 10. 결론
+본 논문에서는 Transformer의 각 구성 요소와 구조를 심층적으로 분석하였습니다. Self-Attention, Position Encoding, Multi-Head Attention 등은 트랜스포머가 기존 모델보다 효율적이고 강력한 표현력을 가지는 데 결정적입니다. 잔차 연결과 Layer Normalization, Feed-Forward Network 같은 요소들은 안정적이면서도 깊은 네트워크 구성에 기여합니다. Transformer는 NLP 뿐만 아니라 다양한 도메인에서 성공적으로 활용되고 있습니다. 앞으로도 구조적 개선과 확장 연구를 통해 더 많은 발전이 기대되는 모델입니다.

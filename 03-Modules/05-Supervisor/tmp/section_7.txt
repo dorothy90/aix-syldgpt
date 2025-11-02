@@ -1,0 +1,2 @@
+## 7. Residual Connection과 Layer Normalization
+Transformer 각 층에는 잔차 연결(Residual Connection)과 층 정규화(Layer Normalization)가 추가되어 있습니다. 잔차 연결은 입력값이 출력값에 더해져, 정보 손실을 막고 역전파시 기울기 소실 문제를 완화합니다. Layer Normalization은 각 층의 출력값을 정규화하여 학습 안정성을 높여줍니다. 이 조합은 모델이 더 빠른 수렴을 이루고, 깊은 네트워크 구조에서도 효과적으로 학습할 수 있게 합니다. 이러한 설계는 딥러닝에서 일반적으로 성능 향상에 중요하게 작용합니다.

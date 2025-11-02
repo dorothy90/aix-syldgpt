@@ -1,0 +1,2 @@
+## 8. Feed-Forward Neural Network
+Transformer의 각 층에는 Position-wise Feed-Forward Neural Network가 포함됩니다. 이는 각 단어의 벡터에 대해 독립적으로 작동하는 두 개의 선형 변환과 비선형 활성화 함수를 적용합니다. 이 구조는 Attention 메커니즘과 결합되어, 복잡한 정보 변환과 비선형 표현력을 제공합니다. 각 단어별로 병렬 연산이 가능해 연산 효율성 역시 높습니다. 이 Feed-Forward Layer는 Transformer의 학습 능력과 모델의 표현력을 크게 높입니다.

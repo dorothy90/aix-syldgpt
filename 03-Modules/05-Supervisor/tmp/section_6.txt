@@ -1,0 +1,2 @@
+## 6. Multi-Head Attention
+Multi-Head Attention은 Attention 기법을 병렬로 여러 번 수행하는 전략입니다. 여러 개의 서로 다른 attention subspace를 학습할 수 있기 때문에, 모델이 다양한 시각에서 입력 데이터를 볼 수 있습니다. 각 헤드는 서로 독립적인 Query, Key, Value를 사용하여 attention output을 뽑아내고, 이들을 concat 후 선형 변환을 통해 결합합니다. 이 방식은 단일 attention보다 더 풍부한 표현력을 제공합니다. Multi-Head Attention은 Transformer 성능의 핵심 요인 중 하나로 여겨집니다.
