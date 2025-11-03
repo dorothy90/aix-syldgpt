@@ -315,7 +315,7 @@ def render_sidebar() -> None:
             )
 
             for session_id, session_data in sorted_sessions:
-                col1, col2 = st.columns([7, 2])
+                col1, col2 = st.columns([7, 0.1])
 
                 with col1:
                     # 현재 활성 세션 표시
@@ -331,26 +331,26 @@ def render_sidebar() -> None:
                             st.session_state.current_session_id = session_id
                             st.rerun()
 
-                with col2:
-                    # 삭제 버튼
-                    if st.button("삭제", key=f"delete_{session_id}"):
-                        if len(st.session_state.sessions) > 1:
-                            # 메모리에서 삭제
-                            del st.session_state.sessions[session_id]
-                            # MongoDB에서 삭제
-                            delete_session_from_db(session_id)
-                            # 삭제된 세션이 현재 세션이면 다른 세션으로 전환
-                            if session_id == get_current_session_id():
-                                st.session_state.current_session_id = list(
-                                    st.session_state.sessions.keys()
-                                )[0]
-                            st.rerun()
-                        else:
-                            st.warning("마지막 채팅은 삭제할 수 없습니다.")
+                # with col2:
+                # 삭제 버튼
+                # if st.button("삭제", key=f"delete_{session_id}"):
+                #     if len(st.session_state.sessions) > 1:
+                #         # 메모리에서 삭제
+                #         del st.session_state.sessions[session_id]
+                #         # MongoDB에서 삭제
+                #         delete_session_from_db(session_id)
+                #         # 삭제된 세션이 현재 세션이면 다른 세션으로 전환
+                #         if session_id == get_current_session_id():
+                #             st.session_state.current_session_id = list(
+                #                 st.session_state.sessions.keys()
+                #             )[0]
+                #         st.rerun()
+                #     else:
+                #         st.warning("마지막 채팅은 삭제할 수 없습니다.")
 
                 # 생성 시간 표시
-                st.caption(f"📅 {session_data['created_at']}")
-                st.divider()
+                # st.caption(f"📅 {session_data['created_at']}")
+                # st.divider()
         else:
             st.info("채팅 히스토리가 없습니다.")
 
