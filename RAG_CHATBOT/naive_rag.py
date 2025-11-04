@@ -67,14 +67,19 @@ def llm_answer(state: GraphState) -> GraphState:
     latest_question = state["question"]
     # 검색된 문서를 상태에서 가져옴
     context = state["context"]
-    # 체인을 호출하여 답변 생성
-    response = chain.invoke(
+
+    # 체인을 스트리밍으로 호출하여 답변 생성
+    # stream()을 사용하면 LangGraph의 stream_mode="messages"가 작동함
+    response = ""
+    for chunk in chain.stream(
         {
             "question": latest_question,
             "context": context,
             "chat_history": messages_to_history(state["messages"]),
         }
-    )
+    ):
+        response += chunk
+
     return {
         "answer": response,
         "messages": [("user", latest_question), ("assistant", response)],

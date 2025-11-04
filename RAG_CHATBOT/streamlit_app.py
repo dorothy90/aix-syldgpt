@@ -368,7 +368,7 @@ def ask_and_answer(user_text: str) -> None:
     with st.chat_message("user"):
         st.write(user_text)
 
-    # LangGraph 실행
+    # LangGraph 스트리밍 실행
     try:
         config = RunnableConfig(
             recursion_limit=10,
@@ -381,16 +381,32 @@ def ask_and_answer(user_text: str) -> None:
             "question": user_text,
         }
 
-        result = graph_app.invoke(inputs, config=config)
-        answer = result.get("answer", "") if isinstance(result, dict) else result
+        # 스트리밍 제너레이터 함수
+        def stream_response():
+            """LangGraph 스트리밍 응답 생성"""
+
+            # stream_mode="messages"를 사용하여 LLM 토큰 단위 스트리밍 시도
+            for chunk in graph_app.stream(
+                inputs, config=config, stream_mode="messages"
+            ):
+                # chunk는 (message_chunk, metadata) 튜플 형태
+                if isinstance(chunk, tuple) and len(chunk) >= 1:
+                    message_chunk = chunk[0]
+                    # AIMessageChunk의 content가 있으면 yield
+                    if hasattr(message_chunk, "content") and message_chunk.content:
+                        yield str(message_chunk.content)
+
+        # 어시스턴트 메시지 스트리밍 출력
+        with st.chat_message("assistant"):
+            # st.write_stream으로 스트리밍 출력하고 전체 답변 수집
+            answer = st.write_stream(stream_response())
+
     except Exception as e:
         st.error(f"그래프 실행 중 오류가 발생했습니다: {e}")
         return
 
-    # 어시스턴트 메시지 추가 및 출력
+    # 어시스턴트 메시지 추가
     messages.append({"role": "assistant", "content": str(answer)})
-    with st.chat_message("assistant"):
-        st.write(str(answer))
 
     # MongoDB에 메시지 업데이트 저장
     save_session_to_db(session_id, st.session_state.sessions[session_id])
