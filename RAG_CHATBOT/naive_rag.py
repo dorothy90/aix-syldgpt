@@ -6,7 +6,9 @@ from func.docs import MongoEmbeddingRetrievalChain
 
 # API 키 정보 로드
 load_dotenv(override=True)
-
+model_name = os.getenv("RETRIEVE_CHAIN_MODEL")
+base_url = os.getenv("OPENROUTER_BASE_URL")
+api_key = os.getenv("OPENROUTER_API_KEY")
 # mongodb 로드합니다.
 mongodb = MongoEmbeddingRetrievalChain().create_chain()
 
@@ -17,12 +19,15 @@ chain = mongodb.chain
 # %%
 # Test
 if __name__ == "__main__":
+    from langchain_teddynote.messages import messages_to_history
+
     query = "workd2Vec이 뭐야"
     seacrh_result_retriever = retriever.invoke(query)
     seacrh_result_chain = chain.invoke(
         {
             "question": query,
             "context": seacrh_result_retriever,
+            "chat_history": messages_to_history([]),  # 빈 대화 기록 추가
         }
     )
 
@@ -33,12 +38,12 @@ if __name__ == "__main__":
 
 ## 랭그래프로 naive rag 구현
 # State 정의
-from typing import Annotated, TypedDict
+from typing import Annotated, TypedDict, List
 from langgraph.graph.message import add_messages
 
 
 class GraphState(TypedDict):
-    question: Annotated[str, "Question"]
+    question: Annotated[List[str], add_messages]
     context: Annotated[str, "Context"]
     answer: Annotated[str, "Answer"]
     messages: Annotated[list, add_messages]
@@ -52,7 +57,7 @@ from func.utils import format_searched_docs
 # 문서 검색 노드
 def retrieve_document(state: GraphState) -> GraphState:
     # 질문을 상태에서 가져옴
-    latest_question = state["question"]
+    latest_question = state["question"][-1].content
     # 문서에서 검색하여 관련있는 문서 가져오기
     retrieve_docs = retriever.invoke(latest_question)
     # 검색된 문서 형식화 (프롬프트에 넣을 때 더 정형화해서 넣기)
@@ -64,7 +69,7 @@ def retrieve_document(state: GraphState) -> GraphState:
 # 답변 생성 노드
 def llm_answer(state: GraphState) -> GraphState:
     # 질문을 상태에서 가져옴
-    latest_question = state["question"]
+    latest_question = state["question"][-1].content
     # 검색된 문서를 상태에서 가져옴
     context = state["context"]
 
@@ -86,8 +91,31 @@ def llm_answer(state: GraphState) -> GraphState:
     }
 
 
-## LangGraph 생성
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
+# Query Rewrite 프롬프트 정의
+from langchain_core.prompts import load_prompt
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+
+re_write_prompt = load_prompt("prompts/rewrite.yaml")
+
+question_rewriter = (
+    re_write_prompt
+    | ChatOpenAI(model=model_name, base_url=base_url, api_key=api_key, temperature=0)
+    | StrOutputParser()
+)
+
+
+# Query Rewrite 노드
+def query_rewrite(state: GraphState) -> GraphState:
+    latest_question = state["question"][-1].content
+    question_rewritten = question_rewriter.invoke({"question": latest_question})
+    return {"question": HumanMessage(content=question_rewritten)}
+
+
+# %%
 from langgraph.graph import END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -96,14 +124,16 @@ workflow = StateGraph(GraphState)
 
 # workflow 노드 추가
 workflow.add_node("retrieve", retrieve_document)
+workflow.add_node("query_rewrite", query_rewrite)
 workflow.add_node("llm_answer", llm_answer)
 
 # workflow 엣지 추가
+workflow.add_edge("query_rewrite", "retrieve")
 workflow.add_edge("retrieve", "llm_answer")
 workflow.add_edge("llm_answer", END)
 
 # workflow 진입점 설정
-workflow.set_entry_point("retrieve")
+workflow.set_entry_point("query_rewrite")
 
 # 체크포인터 설정
 memory = MemorySaver()

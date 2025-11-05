@@ -22,3 +22,4 @@ CLAUDE.md
 
 *.faiss
 *.pkl
+RAG_CHATBOT/func/file_embed_drm_macos.py

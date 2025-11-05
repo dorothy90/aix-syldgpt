@@ -1,4 +1,28 @@
 # %%
+# %%
+from pptx import Presentation
+from openpyxl import load_workbook
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+import base64
+from openai import OpenAI
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
+from pymongo import MongoClient
+import numpy as np
+import win32com.client
+
+load_dotenv(override=True)
+embeddings_model_name = os.getenv("EMBEDDINGS_MODEL_NAME")
+vl_model_name = os.getenv("VL_MODEL_NAME")
+
+text_embedder = OpenAIEmbeddings(
+    model=embeddings_model_name,
+    openai_api_key=os.getenv("OPENROUTER_API_KEY"),
+    openai_api_base=os.getenv("OPENROUTER_BASE_URL"),
+)
+
 # DRM PPTX 처리 함수 (Windows) - 완전 자동화 버전
 def export_pptx_slides_via_com_auto(
     file_path, output_dir="output_images", image_format="PNG", close_after=True
@@ -347,3 +371,5 @@ for file_path in files_to_process:
     docs_count = process_and_store_document(
         file_path, move_after_process=True, auto_open_drm=True  # 자동으로 파일 열기
     )
+
+# %%
