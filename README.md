@@ -1,6 +1,6 @@
 # 📚 LangGraph Tutorial
 
-> **LangGraph의 모든 것을 마스터하세요**  
+> **LangGraph의 모든 것을 마스터하세요**
 > 이 종합 가이드는 초급자부터 고급 개발자까지 LangGraph의 핵심 개념부터 실무 활용까지 체계적으로 학습할 수 있도록 설계된 한국어 튜토리얼입니다. 실전 프로젝트와 심화 실습을 통해 복잡한 AI 에이전트 시스템을 구축하는 전문 역량을 키워보세요.
 
 <picture class="github-only">
@@ -108,6 +108,21 @@ langgraph-tutorial/
 │   ├── 04-MCP/            # Model Context Protocol
 │   ├── 05-Supervisor/     # 멀티 에이전트 관리
 │   └── 06-Memory/         # 메모리 관리 시스템
+├── RAG_CHATBOT_OS/        # RAG 챗봇 구현 (Streamlit)
+├── backend/               # FastAPI 백엔드
+│   ├── app/
+│   │   ├── api/           # API 엔드포인트
+│   │   ├── models/        # Pydantic 모델
+│   │   ├── services/      # 비즈니스 로직
+│   │   └── main.py        # FastAPI 앱 진입점
+│   └── requirements.txt
+├── frontend/              # React 프론트엔드
+│   ├── src/
+│   │   ├── components/    # React 컴포넌트
+│   │   ├── hooks/         # 커스텀 훅
+│   │   ├── services/      # API 서비스
+│   │   └── App.tsx        # 메인 앱 컴포넌트
+│   └── package.json
 └── 99-Templates/          # 개발용 템플릿
     └── 00-Practice-Template.ipynb
 ```
@@ -126,7 +141,34 @@ langgraph-tutorial/
   - **04-MCP/**: Model Context Protocol을 활용한 고급 통합
   - **05-Supervisor/**: 멀티 에이전트 협업 및 관리 시스템
   - **06-Memory/**: 장기 메모리 및 상태 관리 시스템
+- **RAG_CHATBOT_OS/**: Streamlit 기반 RAG 챗봇 구현 예제
+- **backend/**: FastAPI 백엔드 서버 (스트리밍 채팅 API)
+- **frontend/**: React 프론트엔드 애플리케이션
 - **99-Templates/**: 새로운 실습이나 프로젝트 개발을 위한 기본 템플릿
+
+## 🚀 FastAPI 백엔드 및 React 프론트엔드 실행
+
+이 프로젝트에는 RAG 챗봇을 위한 FastAPI 백엔드와 React 프론트엔드가 포함되어 있습니다.
+
+### 백엔드 실행
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+자세한 내용은 [backend/README.md](./backend/README.md)를 참조하세요.
+
+### 프론트엔드 실행
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+자세한 내용은 [frontend/README.md](./frontend/README.md)를 참조하세요.
 
 ## 🔗 참고 링크
 
