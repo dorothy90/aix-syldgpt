@@ -44,6 +44,9 @@ class OpenSearchEmbeddingRetrievalChain:
         self.keyword_weight = 0.3
         self.semantic_weight = 0.7
 
+        # doc_type별 검색 결과 개수 (환경변수에서 읽기, 기본값 30)
+        self.k_per_type = int(os.getenv("RETRIEVE_K_PER_TYPE", "30"))
+
     def create_prompt(self):
         return load_prompt(
             "/Users/daehwankim/Documents/langgraph-tutorial-main/RAG_CHATBOT/prompts/qa_prompt.yaml",
@@ -97,43 +100,109 @@ class OpenSearchEmbeddingRetrievalChain:
 
         return hits
 
-    def _keyword_search(self, client, query: str, size: int):
+    def _keyword_search(
+        self, client, query: str, size: int, doc_type_filter: str = None
+    ):
         """BM25 키워드 검색"""
+        query_clause = {
+            "multi_match": {
+                "query": query,
+                "fields": ["page_content"],
+                "type": "best_fields",
+            }
+        }
+
+        # doc_type 필터 추가
+        if doc_type_filter is not None:
+            if doc_type_filter == "parquet":
+                # parquet인 경우
+                query_clause = {
+                    "bool": {
+                        "must": [
+                            {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": ["page_content"],
+                                    "type": "best_fields",
+                                }
+                            },
+                            {"term": {"metadata.doc_type": "parquet"}},
+                        ]
+                    }
+                }
+            else:
+                # parquet이 아닌 경우
+                query_clause = {
+                    "bool": {
+                        "must": [
+                            {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": ["page_content"],
+                                    "type": "best_fields",
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "must_not": {
+                                        "term": {"metadata.doc_type": "parquet"}
+                                    }
+                                }
+                            },
+                        ]
+                    }
+                }
+
         search_body = {
             "size": size,
-            "query": {
-                "multi_match": {
-                    "query": query,
-                    "fields": ["page_content"],
-                    "type": "best_fields",
-                }
-            },
+            "query": query_clause,
             "_source": ["page_content", "metadata"],
         }
 
         response = client.search(index=self.opensearch_index, body=search_body)
         return response["hits"]["hits"]
 
-    def _semantic_search(self, client, query_embedding: list, size: int):
+    def _semantic_search(
+        self, client, query_embedding: list, size: int, doc_type_filter: str = None
+    ):
         """kNN 벡터 검색"""
+        knn_clause = {
+            self.opensearch_embedding_field: {
+                "vector": query_embedding,
+                "k": size,
+            }
+        }
+
+        # doc_type 필터 추가
+        filter_clause = None
+        if doc_type_filter is not None:
+            if doc_type_filter == "parquet":
+                # parquet인 경우
+                filter_clause = {"term": {"metadata.doc_type": "parquet"}}
+            else:
+                # parquet이 아닌 경우
+                filter_clause = {
+                    "bool": {"must_not": {"term": {"metadata.doc_type": "parquet"}}}
+                }
+
         search_body = {
             "size": size,
-            "query": {
-                "knn": {
-                    self.opensearch_embedding_field: {
-                        "vector": query_embedding,
-                        "k": size,
-                    }
-                }
-            },
+            "query": {"knn": knn_clause},
             "_source": ["page_content", "metadata"],
         }
+
+        # 필터가 있는 경우 추가
+        if filter_clause:
+            search_body["query"]["knn"][self.opensearch_embedding_field][
+                "filter"
+            ] = filter_clause
 
         response = client.search(index=self.opensearch_index, body=search_body)
         return response["hits"]["hits"]
 
     def search_similar_documents(self, query: str) -> list[Document]:
-        """하이브리드 검색 수행 (키워드 30% + 시맨틱 70%)"""
+        """하이브리드 검색 수행 (키워드 30% + 시맨틱 70%)
+        doc_type이 parquet인 것과 아닌 것을 각각 k_per_type개씩 검색"""
         # 쿼리를 임베딩으로 변환
         embedding_model = self.create_embedding()
         query_embedding = embedding_model.embed_query(query)
@@ -141,59 +210,66 @@ class OpenSearchEmbeddingRetrievalChain:
         client = self._get_opensearch_client()
 
         try:
-            # 더 많은 결과를 가져와서 재순위화
-            fetch_size = self.k * 2
+            # 각 doc_type별로 k_per_type개씩 가져오기 위해 더 많은 결과를 가져와서 재순위화
+            fetch_size = self.k_per_type * 2
 
-            # 1. 키워드 검색 (BM25)
-            keyword_hits = self._keyword_search(client, query, fetch_size)
-            keyword_hits = self._normalize_scores(keyword_hits)
+            all_documents = []
 
-            # 2. 시맨틱 검색 (kNN)
-            semantic_hits = self._semantic_search(client, query_embedding, fetch_size)
-            semantic_hits = self._normalize_scores(semantic_hits)
+            # doc_type별로 검색 수행
+            for doc_type_filter in ["parquet", "non_parquet"]:
+                # 1. 키워드 검색 (BM25)
+                keyword_hits = self._keyword_search(
+                    client, query, fetch_size, doc_type_filter
+                )
+                keyword_hits = self._normalize_scores(keyword_hits)
 
-            # 3. 결과 병합 및 점수 계산
-            doc_scores = {}  # {doc_id: {"score": float, "hit": dict}}
+                # 2. 시맨틱 검색 (kNN)
+                semantic_hits = self._semantic_search(
+                    client, query_embedding, fetch_size, doc_type_filter
+                )
+                semantic_hits = self._normalize_scores(semantic_hits)
 
-            # 키워드 검색 결과 추가 (30% 가중치)
-            for hit in keyword_hits:
-                doc_id = hit["_id"]
-                score = hit["_normalized_score"] * self.keyword_weight
-                doc_scores[doc_id] = {"score": score, "hit": hit}
+                # 3. 결과 병합 및 점수 계산
+                doc_scores = {}  # {doc_id: {"score": float, "hit": dict}}
 
-            # 시맨틱 검색 결과 추가 (70% 가중치)
-            for hit in semantic_hits:
-                doc_id = hit["_id"]
-                score = hit["_normalized_score"] * self.semantic_weight
-
-                if doc_id in doc_scores:
-                    # 이미 키워드 검색에서 나온 경우, 점수 합산
-                    doc_scores[doc_id]["score"] += score
-                else:
-                    # 시맨틱 검색에서만 나온 경우
+                # 키워드 검색 결과 추가 (30% 가중치)
+                for hit in keyword_hits:
+                    doc_id = hit["_id"]
+                    score = hit["_normalized_score"] * self.keyword_weight
                     doc_scores[doc_id] = {"score": score, "hit": hit}
 
-            # 4. 점수 기준으로 정렬하고 상위 k개 선택
-            sorted_docs = sorted(
-                doc_scores.items(), key=lambda x: x[1]["score"], reverse=True
-            )[: self.k]
+                # 시맨틱 검색 결과 추가 (70% 가중치)
+                for hit in semantic_hits:
+                    doc_id = hit["_id"]
+                    score = hit["_normalized_score"] * self.semantic_weight
 
-            # 5. Document 객체로 변환
-            documents = []
-            for doc_id, doc_data in sorted_docs:
-                hit = doc_data["hit"]
-                source = hit["_source"]
-                doc = Document(
-                    page_content=source.get("page_content", ""),
-                    metadata={
-                        **source.get("metadata", {}),
-                        "hybrid_score": doc_data["score"],
-                        "doc_id": doc_id,
-                    },
-                )
-                documents.append(doc)
+                    if doc_id in doc_scores:
+                        # 이미 키워드 검색에서 나온 경우, 점수 합산
+                        doc_scores[doc_id]["score"] += score
+                    else:
+                        # 시맨틱 검색에서만 나온 경우
+                        doc_scores[doc_id] = {"score": score, "hit": hit}
 
-            return documents
+                # 4. 점수 기준으로 정렬하고 상위 k_per_type개 선택
+                sorted_docs = sorted(
+                    doc_scores.items(), key=lambda x: x[1]["score"], reverse=True
+                )[: self.k_per_type]
+
+                # 5. Document 객체로 변환
+                for doc_id, doc_data in sorted_docs:
+                    hit = doc_data["hit"]
+                    source = hit["_source"]
+                    doc = Document(
+                        page_content=source.get("page_content", ""),
+                        metadata={
+                            **source.get("metadata", {}),
+                            "hybrid_score": doc_data["score"],
+                            "doc_id": doc_id,
+                        },
+                    )
+                    all_documents.append(doc)
+
+            return all_documents
 
         except Exception as e:
             print(f"OpenSearch 하이브리드 검색 오류: {e}")

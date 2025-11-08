@@ -270,10 +270,12 @@ class UniversalOpenSearchRetriever:
 
 # %%
 # Retriever 생성 (OpenSearch 기반)
+# top_k는 환경변수에서 읽기 (기본값 5)
+retriever_top_k = int(os.getenv("RETRIEVE_K_PER_TYPE", "5"))
 retriever = UniversalOpenSearchRetriever(
     client=opensearch_client,
     embedder=text_embedder,
-    top_k=5,
+    top_k=retriever_top_k,
     keyword_weight=0.3,  # 키워드 30%
     semantic_weight=0.7,  # 시맨틱 70%
 )
