@@ -118,67 +118,83 @@ class OpenSearchEmbeddingRetrievalChain:
 
         return hits
 
-    def _keyword_search(
-        self, client, query: str, size: int, doc_type_filter: str = None
-    ):
-        """BM25 키워드 검색"""
-        query_clause = {
-            "multi_match": {
-                "query": query,
-                "fields": ["page_content"],
-                "type": "best_fields",
+
+def _keyword_search(self, client, query: str, size: int, doc_type_filter: str = None):
+    """BM25 키워드 검색 - 부분 매칭 지원"""
+
+    # 쿼리의 주요 키워드 추출 (예: "WLBL Test" → ["WLBL", "Test"])
+    keywords = query.split()
+
+    # 기본 쿼리 구성 - 여러 방식으로 검색
+    base_query_clause = {
+        "bool": {
+            "should": [
+                # 1. 정확한 전체 쿼리 매칭
+                {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["page_content"],
+                        "type": "best_fields",
+                        "boost": 2.0,  # 정확한 매칭에 높은 가중치
+                    }
+                },
+                # 2. 각 키워드별로 부분 매칭 (wildcard)
+                *[
+                    {
+                        "wildcard": {
+                            "page_content": {"value": f"*{keyword}*", "boost": 1.5}
+                        }
+                    }
+                    for keyword in keywords
+                    if len(keyword) >= 2  # 2글자 이상만
+                ],
+                # 3. 각 키워드로 일반 검색
+                *[
+                    {"match": {"page_content": {"query": keyword, "boost": 1.0}}}
+                    for keyword in keywords
+                ],
+            ],
+            "minimum_should_match": 1,  # 최소 하나는 매칭되어야 함
+        }
+    }
+
+    # doc_type 필터 추가
+    if doc_type_filter is not None:
+        if doc_type_filter == "parquet":
+            # parquet인 경우
+            query_clause = {
+                "bool": {
+                    "must": [
+                        base_query_clause,
+                        {"term": {"metadata.doc_type": "parquet"}},
+                    ]
+                }
             }
-        }
-
-        # doc_type 필터 추가
-        if doc_type_filter is not None:
-            if doc_type_filter == "parquet":
-                # parquet인 경우
-                query_clause = {
-                    "bool": {
-                        "must": [
-                            {
-                                "multi_match": {
-                                    "query": query,
-                                    "fields": ["page_content"],
-                                    "type": "best_fields",
-                                }
-                            },
-                            {"term": {"metadata.doc_type": "parquet"}},
-                        ]
-                    }
+        else:
+            # parquet이 아닌 경우
+            query_clause = {
+                "bool": {
+                    "must": [
+                        base_query_clause,
+                        {
+                            "bool": {
+                                "must_not": {"term": {"metadata.doc_type": "parquet"}}
+                            }
+                        },
+                    ]
                 }
-            else:
-                # parquet이 아닌 경우
-                query_clause = {
-                    "bool": {
-                        "must": [
-                            {
-                                "multi_match": {
-                                    "query": query,
-                                    "fields": ["page_content"],
-                                    "type": "best_fields",
-                                }
-                            },
-                            {
-                                "bool": {
-                                    "must_not": {
-                                        "term": {"metadata.doc_type": "parquet"}
-                                    }
-                                }
-                            },
-                        ]
-                    }
-                }
+            }
+    else:
+        query_clause = base_query_clause
 
-        search_body = {
-            "size": size,
-            "query": query_clause,
-            "_source": ["page_content", "metadata"],
-        }
+    search_body = {
+        "size": size,
+        "query": query_clause,
+        "_source": ["page_content", "metadata"],
+    }
 
-        response = client.search(index=self.opensearch_index, body=search_body)
-        return response["hits"]["hits"]
+    response = client.search(index=self.opensearch_index, body=search_body)
+    return response["hits"]["hits"]
 
     def _semantic_search(
         self, client, query_embedding: list, size: int, doc_type_filter: str = None
