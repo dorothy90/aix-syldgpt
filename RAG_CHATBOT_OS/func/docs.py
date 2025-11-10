@@ -1,16 +1,11 @@
-# 의존: langchain_community, langchain, opensearch-py, networkx, numpy
+# 의존: langchain_community, langchain, opensearch-py
 
 # %%
 import os
-import json
-import pickle
 from operator import itemgetter
-from typing import Optional
 
 from dotenv import load_dotenv
 from opensearchpy import OpenSearch
-import networkx as nx
-import numpy as np
 
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -52,18 +47,14 @@ class OpenSearchEmbeddingRetrievalChain:
         # doc_type별 검색 결과 개수 (환경변수에서 읽기, 기본값 30)
         self.k_per_type = int(os.getenv("RETRIEVE_K_PER_TYPE", "30"))
 
-        # NetworkX 그래프 설정
-        self.use_graphdb = os.getenv("USE_GRAPHDB", "false").lower() == "true"
-        self.graphdb_file = os.getenv(
-            "GRAPHDB_FILE", "document_graph.pkl"
-        )  # 그래프 파일 경로
-        self.graphdb_expansion_limit = int(os.getenv("GRAPHDB_EXPANSION_LIMIT", "10"))
-        self.graphdb_max_depth = int(os.getenv("GRAPHDB_MAX_DEPTH", "1"))
-
-        # NetworkX 그래프 초기화
-        self.doc_graph: Optional[nx.Graph] = None
-        if self.use_graphdb:
-            self._load_document_graph()
+        # k-NN 확장 설정
+        self.use_expansion = os.getenv("USE_KNN_EXPANSION", "true").lower() == "true"
+        self.expansion_k = int(
+            os.getenv("KNN_EXPANSION_K", "5")
+        )  # 각 문서당 확장할 이웃 수
+        self.expansion_limit = int(
+            os.getenv("KNN_EXPANSION_LIMIT", "10")
+        )  # 최대 확장 문서 수
 
     def create_prompt(self):
         return load_prompt(
@@ -118,83 +109,86 @@ class OpenSearchEmbeddingRetrievalChain:
 
         return hits
 
+    def _keyword_search(
+        self, client, query: str, size: int, doc_type_filter: str = None
+    ):
+        """BM25 키워드 검색 - 부분 매칭 지원"""
 
-def _keyword_search(self, client, query: str, size: int, doc_type_filter: str = None):
-    """BM25 키워드 검색 - 부분 매칭 지원"""
+        # 쿼리의 주요 키워드 추출 (예: "WLBL Test" → ["WLBL", "Test"])
+        keywords = query.split()
 
-    # 쿼리의 주요 키워드 추출 (예: "WLBL Test" → ["WLBL", "Test"])
-    keywords = query.split()
-
-    # 기본 쿼리 구성 - 여러 방식으로 검색
-    base_query_clause = {
-        "bool": {
-            "should": [
-                # 1. 정확한 전체 쿼리 매칭
-                {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ["page_content"],
-                        "type": "best_fields",
-                        "boost": 2.0,  # 정확한 매칭에 높은 가중치
-                    }
-                },
-                # 2. 각 키워드별로 부분 매칭 (wildcard)
-                *[
+        # 기본 쿼리 구성 - 여러 방식으로 검색
+        base_query_clause = {
+            "bool": {
+                "should": [
+                    # 1. 정확한 전체 쿼리 매칭
                     {
-                        "wildcard": {
-                            "page_content": {"value": f"*{keyword}*", "boost": 1.5}
+                        "multi_match": {
+                            "query": query,
+                            "fields": ["page_content"],
+                            "type": "best_fields",
+                            "boost": 2.0,  # 정확한 매칭에 높은 가중치
                         }
-                    }
-                    for keyword in keywords
-                    if len(keyword) >= 2  # 2글자 이상만
-                ],
-                # 3. 각 키워드로 일반 검색
-                *[
-                    {"match": {"page_content": {"query": keyword, "boost": 1.0}}}
-                    for keyword in keywords
-                ],
-            ],
-            "minimum_should_match": 1,  # 최소 하나는 매칭되어야 함
-        }
-    }
-
-    # doc_type 필터 추가
-    if doc_type_filter is not None:
-        if doc_type_filter == "parquet":
-            # parquet인 경우
-            query_clause = {
-                "bool": {
-                    "must": [
-                        base_query_clause,
-                        {"term": {"metadata.doc_type": "parquet"}},
-                    ]
-                }
-            }
-        else:
-            # parquet이 아닌 경우
-            query_clause = {
-                "bool": {
-                    "must": [
-                        base_query_clause,
+                    },
+                    # 2. 각 키워드별로 부분 매칭 (wildcard)
+                    *[
                         {
-                            "bool": {
-                                "must_not": {"term": {"metadata.doc_type": "parquet"}}
+                            "wildcard": {
+                                "page_content": {"value": f"*{keyword}*", "boost": 1.5}
                             }
-                        },
-                    ]
-                }
+                        }
+                        for keyword in keywords
+                        if len(keyword) >= 2  # 2글자 이상만
+                    ],
+                    # 3. 각 키워드로 일반 검색
+                    *[
+                        {"match": {"page_content": {"query": keyword, "boost": 1.0}}}
+                        for keyword in keywords
+                    ],
+                ],
+                "minimum_should_match": 1,  # 최소 하나는 매칭되어야 함
             }
-    else:
-        query_clause = base_query_clause
+        }
 
-    search_body = {
-        "size": size,
-        "query": query_clause,
-        "_source": ["page_content", "metadata"],
-    }
+        # doc_type 필터 추가
+        if doc_type_filter is not None:
+            if doc_type_filter == "parquet":
+                # parquet인 경우
+                query_clause = {
+                    "bool": {
+                        "must": [
+                            base_query_clause,
+                            {"term": {"metadata.doc_type": "parquet"}},
+                        ]
+                    }
+                }
+            else:
+                # parquet이 아닌 경우
+                query_clause = {
+                    "bool": {
+                        "must": [
+                            base_query_clause,
+                            {
+                                "bool": {
+                                    "must_not": {
+                                        "term": {"metadata.doc_type": "parquet"}
+                                    }
+                                }
+                            },
+                        ]
+                    }
+                }
+        else:
+            query_clause = base_query_clause
 
-    response = client.search(index=self.opensearch_index, body=search_body)
-    return response["hits"]["hits"]
+        search_body = {
+            "size": size,
+            "query": query_clause,
+            "_source": ["page_content", "metadata"],
+        }
+
+        response = client.search(index=self.opensearch_index, body=search_body)
+        return response["hits"]["hits"]
 
     def _semantic_search(
         self, client, query_embedding: list, size: int, doc_type_filter: str = None
@@ -234,132 +228,86 @@ def _keyword_search(self, client, query: str, size: int, doc_type_filter: str = 
         response = client.search(index=self.opensearch_index, body=search_body)
         return response["hits"]["hits"]
 
-    def _load_document_graph(self):
-        """문서 관계 그래프 로드"""
-        try:
-            if self.graphdb_file and os.path.exists(self.graphdb_file):
-                if self.graphdb_file.endswith(".pkl") or self.graphdb_file.endswith(
-                    ".pickle"
-                ):
-                    with open(self.graphdb_file, "rb") as f:
-                        self.doc_graph = pickle.load(f)
-                elif self.graphdb_file.endswith(".json"):
-                    with open(self.graphdb_file, "r", encoding="utf-8") as f:
-                        graph_data = json.load(f)
-                        self.doc_graph = nx.node_link_graph(graph_data)
-                elif self.graphdb_file.endswith(".graphml"):
-                    self.doc_graph = nx.read_graphml(self.graphdb_file)
-                else:
-                    print(f"지원하지 않는 그래프 파일 형식: {self.graphdb_file}")
-                    self.doc_graph = nx.Graph()
-            else:
-                print(f"그래프 파일을 찾을 수 없습니다: {self.graphdb_file}")
-                self.doc_graph = nx.Graph()
-
-            if self.doc_graph is None:
-                self.doc_graph = nx.Graph()
-
-            print(
-                f"문서 그래프 로드 완료: {self.doc_graph.number_of_nodes()}개 노드, {self.doc_graph.number_of_edges()}개 엣지"
-            )
-        except Exception as e:
-            print(f"그래프 로드 오류: {e}")
-            import traceback
-
-            traceback.print_exc()
-            self.doc_graph = nx.Graph()
-
-    def _expand_documents_via_graphdb(self, doc_ids: list[str]) -> list[str]:
-        """NetworkX 그래프를 통해 연결된 문서 ID들을 찾기"""
-        if not self.use_graphdb or not self.doc_graph or not doc_ids:
-            return []
-
-        expanded_doc_ids = set()
-
-        try:
-            for doc_id in doc_ids:
-                if doc_id in self.doc_graph:
-                    if self.graphdb_max_depth > 1:
-                        # BFS로 다단계 탐색
-                        visited = {doc_id}
-                        queue = [(doc_id, 0)]
-
-                        while queue:
-                            current_node, depth = queue.pop(0)
-
-                            if depth >= self.graphdb_max_depth:
-                                continue
-
-                            for neighbor in self.doc_graph.neighbors(current_node):
-                                if neighbor not in visited:
-                                    visited.add(neighbor)
-                                    if neighbor not in doc_ids:
-                                        expanded_doc_ids.add(neighbor)
-                                    queue.append((neighbor, depth + 1))
-                    else:
-                        # 직접 이웃만
-                        for neighbor in self.doc_graph.neighbors(doc_id):
-                            if neighbor not in doc_ids:
-                                expanded_doc_ids.add(neighbor)
-
-            # 확장 제한 적용
-            expanded_list = list(expanded_doc_ids)
-            if len(expanded_list) > self.graphdb_expansion_limit:
-                # 연결 수가 많은 노드 우선
-                expanded_list = sorted(
-                    expanded_list,
-                    key=lambda x: (
-                        self.doc_graph.degree(x) if x in self.doc_graph else 0
-                    ),
-                    reverse=True,
-                )[: self.graphdb_expansion_limit]
-
-            return expanded_list
-
-        except Exception as e:
-            print(f"GraphDB 확장 검색 오류: {e}")
-            import traceback
-
-            traceback.print_exc()
-            return []
-
-    def _get_documents_by_ids(self, client, doc_ids: list[str]) -> list[Document]:
-        """OpenSearch에서 문서 ID로 문서 가져오기"""
+    def _expand_documents_via_knn(self, client, doc_ids: list[str]) -> list[Document]:
+        """OpenSearch k-NN을 사용하여 각 문서의 유사한 이웃 문서 찾기"""
         if not doc_ids:
             return []
 
+        expanded_docs = []
+        expanded_doc_ids = set()
+
         try:
-            search_body = {
-                "query": {"ids": {"values": doc_ids}},
-                "size": len(doc_ids),
-                "_source": ["page_content", "metadata"],
-            }
+            for doc_id in doc_ids[:5]:  # 최대 5개 문서에 대해서만 확장 (성능 고려)
+                try:
+                    # 해당 문서의 임베딩 가져오기
+                    doc = client.get(
+                        index=self.opensearch_index,
+                        id=doc_id,
+                        _source=[self.opensearch_embedding_field],
+                    )
+                    embedding = doc["_source"].get(self.opensearch_embedding_field)
 
-            response = client.search(index=self.opensearch_index, body=search_body)
-            documents = []
+                    if not embedding:
+                        continue
 
-            for hit in response["hits"]["hits"]:
-                source = hit["_source"]
-                doc = Document(
-                    page_content=source.get("page_content", ""),
-                    metadata={
-                        **source.get("metadata", {}),
-                        "doc_id": hit["_id"],
-                        "graphdb_expanded": True,
-                    },
-                )
-                documents.append(doc)
+                    # k-NN 검색으로 유사한 문서 찾기
+                    knn_query = {
+                        self.opensearch_embedding_field: {
+                            "vector": embedding,
+                            "k": self.expansion_k + 1,  # 자기 자신 제외
+                        }
+                    }
 
-            return documents
+                    search_body = {
+                        "size": self.expansion_k + 1,
+                        "query": {"knn": knn_query},
+                        "_source": ["page_content", "metadata"],
+                    }
+
+                    response = client.search(
+                        index=self.opensearch_index, body=search_body
+                    )
+
+                    # 중복 제거하며 추가
+                    for hit in response["hits"]["hits"]:
+                        neighbor_id = hit["_id"]
+                        if (
+                            neighbor_id != doc_id
+                            and neighbor_id not in expanded_doc_ids
+                        ):
+                            source = hit["_source"]
+                            expanded_docs.append(
+                                Document(
+                                    page_content=source.get("page_content", ""),
+                                    metadata={
+                                        **source.get("metadata", {}),
+                                        "doc_id": neighbor_id,
+                                        "knn_expanded": True,
+                                    },
+                                )
+                            )
+                            expanded_doc_ids.add(neighbor_id)
+
+                            if len(expanded_docs) >= self.expansion_limit:
+                                return expanded_docs
+
+                except Exception as e:
+                    # 개별 문서 처리 오류는 무시하고 계속 진행
+                    continue
+
+            return expanded_docs
 
         except Exception as e:
-            print(f"문서 ID로 검색 오류: {e}")
+            print(f"k-NN 확장 검색 오류: {e}")
+            import traceback
+
+            traceback.print_exc()
             return []
 
     def search_similar_documents(self, query: str) -> list[Document]:
         """하이브리드 검색 수행 (키워드 30% + 시맨틱 70%)
         doc_type이 parquet인 것과 아닌 것을 각각 k_per_type개씩 검색
-        NetworkX 그래프를 통해 추가 문서 확장"""
+        OpenSearch k-NN을 통해 추가 문서 확장"""
         # 쿼리를 임베딩으로 변환
         embedding_model = self.create_embedding()
         query_embedding = embedding_model.embed_query(query)
@@ -429,25 +377,19 @@ def _keyword_search(self, client, query: str, size: int, doc_type_filter: str = 
                     )
                     all_documents.append(doc)
 
-            # NetworkX 그래프를 통한 문서 확장
-            if self.use_graphdb and initial_doc_ids:
-                expanded_doc_ids = self._expand_documents_via_graphdb(
-                    list(initial_doc_ids)
+            # OpenSearch k-NN을 통한 문서 확장
+            if self.use_expansion and initial_doc_ids:
+                expanded_docs = self._expand_documents_via_knn(
+                    client, list(initial_doc_ids)
                 )
 
-                if expanded_doc_ids:
-                    # 확장된 문서들을 OpenSearch에서 가져오기
-                    expanded_docs = self._get_documents_by_ids(client, expanded_doc_ids)
-
-                    # 중복 제거 (이미 검색된 문서는 제외)
-                    existing_doc_ids = {
-                        doc.metadata.get("doc_id") for doc in all_documents
-                    }
-                    for doc in expanded_docs:
-                        doc_id = doc.metadata.get("doc_id")
-                        if doc_id and doc_id not in existing_doc_ids:
-                            all_documents.append(doc)
-                            existing_doc_ids.add(doc_id)
+                # 중복 제거 (이미 검색된 문서는 제외)
+                existing_doc_ids = {doc.metadata.get("doc_id") for doc in all_documents}
+                for doc in expanded_docs:
+                    doc_id = doc.metadata.get("doc_id")
+                    if doc_id and doc_id not in existing_doc_ids:
+                        all_documents.append(doc)
+                        existing_doc_ids.add(doc_id)
 
             return all_documents
 

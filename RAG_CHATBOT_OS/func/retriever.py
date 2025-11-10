@@ -59,6 +59,15 @@ class UniversalOpenSearchRetriever:
         if not self.client.indices.exists(index=self.index):
             print(f"경고: OpenSearch 인덱스 '{self.index}'가 존재하지 않습니다.")
 
+        # k-NN 확장 설정
+        self.use_expansion = os.getenv("USE_KNN_EXPANSION", "true").lower() == "true"
+        self.expansion_k = int(
+            os.getenv("KNN_EXPANSION_K", "5")
+        )  # 각 문서당 확장할 이웃 수
+        self.expansion_limit = int(
+            os.getenv("KNN_EXPANSION_LIMIT", "10")
+        )  # 최대 확장 문서 수
+
     def _normalize_text(self, text: str) -> str:
         """텍스트 정규화"""
         q = str(text).replace("\r\n", "\n").replace("\r", "\n")
@@ -212,6 +221,7 @@ class UniversalOpenSearchRetriever:
 
                 # 5. 결과 포맷
                 results = []
+                initial_doc_ids = set()  # 초기 검색 결과의 문서 ID 저장
                 for doc_id, doc_data in sorted_docs:
                     hit = doc_data["hit"]
                     source = hit["_source"]
@@ -224,6 +234,23 @@ class UniversalOpenSearchRetriever:
                             "search_mode": "hybrid",
                         }
                     )
+                    initial_doc_ids.add(doc_id)
+
+                # 6. OpenSearch k-NN을 통한 문서 확장
+                if self.use_expansion and initial_doc_ids:
+                    expanded_docs = self._expand_documents_via_knn(
+                        list(initial_doc_ids)
+                    )
+
+                    # 중복 제거 (이미 검색된 문서는 제외)
+                    existing_doc_ids = {r["doc_id"] for r in results}
+                    for doc_data in expanded_docs:
+                        doc_id = doc_data["doc_id"]
+                        if doc_id and doc_id not in existing_doc_ids:
+                            results.append(doc_data)
+                            existing_doc_ids.add(doc_id)
+                            if len(existing_doc_ids) >= k + self.expansion_limit:
+                                break
 
             return results
 
@@ -249,6 +276,79 @@ class UniversalOpenSearchRetriever:
                 }
             )
         return results
+
+    def _expand_documents_via_knn(self, doc_ids: list[str]) -> list[dict]:
+        """OpenSearch k-NN을 사용하여 각 문서의 유사한 이웃 문서 찾기"""
+        if not doc_ids:
+            return []
+
+        expanded_docs = []
+        expanded_doc_ids = set()
+
+        try:
+            for doc_id in doc_ids[:5]:  # 최대 5개 문서에 대해서만 확장 (성능 고려)
+                try:
+                    # 해당 문서의 임베딩 가져오기
+                    doc = self.client.get(
+                        index=self.index,
+                        id=doc_id,
+                        _source=[self.embedding_field],
+                    )
+                    embedding = doc["_source"].get(self.embedding_field)
+
+                    if not embedding:
+                        continue
+
+                    # k-NN 검색으로 유사한 문서 찾기
+                    knn_query = {
+                        self.embedding_field: {
+                            "vector": embedding,
+                            "k": self.expansion_k + 1,  # 자기 자신 제외
+                        }
+                    }
+
+                    search_body = {
+                        "size": self.expansion_k + 1,
+                        "query": {"knn": knn_query},
+                        "_source": ["page_content", "metadata"],
+                    }
+
+                    response = self.client.search(index=self.index, body=search_body)
+
+                    # 중복 제거하며 추가
+                    for hit in response["hits"]["hits"]:
+                        neighbor_id = hit["_id"]
+                        if (
+                            neighbor_id != doc_id
+                            and neighbor_id not in expanded_doc_ids
+                        ):
+                            source = hit["_source"]
+                            expanded_docs.append(
+                                {
+                                    "content": source.get("page_content", ""),
+                                    "metadata": source.get("metadata", {}),
+                                    "similarity": hit["_score"],
+                                    "doc_id": neighbor_id,
+                                    "search_mode": "knn_expanded",
+                                }
+                            )
+                            expanded_doc_ids.add(neighbor_id)
+
+                            if len(expanded_docs) >= self.expansion_limit:
+                                return expanded_docs
+
+                except Exception as e:
+                    # 개별 문서 처리 오류는 무시하고 계속 진행
+                    continue
+
+            return expanded_docs
+
+        except Exception as e:
+            print(f"k-NN 확장 검색 오류: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return []
 
     def invoke(self, query_text, doc_type_filter=None, search_mode="hybrid"):
         """LangChain 호환 인터페이스"""

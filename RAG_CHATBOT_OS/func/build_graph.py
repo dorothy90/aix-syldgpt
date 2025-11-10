@@ -9,6 +9,8 @@ import numpy as np
 from dotenv import load_dotenv
 from opensearchpy import OpenSearch
 import networkx as nx
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Optional
 
 load_dotenv(override=True)
 
@@ -30,6 +32,8 @@ TOP_K_NEIGHBORS = int(
 GRAPH_OUTPUT_FILE = os.getenv(
     "GRAPH_OUTPUT_FILE", "document_graph.pkl"
 )  # 출력 파일 경로
+# 병렬 처리 설정
+MAX_WORKERS = int(os.getenv("GRAPH_MAX_WORKERS", "10"))  # 병렬 처리 스레드 수
 
 
 def cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
@@ -53,8 +57,53 @@ def get_opensearch_client():
     )
 
 
+def fetch_all_document_ids(client: OpenSearch) -> list[str]:
+    """OpenSearch에서 모든 문서의 ID만 가져오기 (메모리 효율적)"""
+    doc_ids = []
+
+    try:
+        # 스크롤을 사용하여 모든 문서 ID 가져오기
+        search_body = {
+            "size": 1000,  # 한 번에 가져올 문서 수
+            "query": {"match_all": {}},
+            "_source": False,  # ID만 가져오기
+        }
+
+        response = client.search(index=OPENSEARCH_INDEX, body=search_body, scroll="5m")
+
+        scroll_id = response.get("_scroll_id")
+        hits = response["hits"]["hits"]
+
+        # 첫 번째 배치 처리
+        for hit in hits:
+            doc_ids.append(hit["_id"])
+
+        # 스크롤로 나머지 문서 가져오기
+        while scroll_id and hits:
+            response = client.scroll(scroll_id=scroll_id, scroll="5m")
+            hits = response["hits"]["hits"]
+            scroll_id = response.get("_scroll_id")
+
+            for hit in hits:
+                doc_ids.append(hit["_id"])
+
+        # 스크롤 정리
+        if scroll_id:
+            client.clear_scroll(scroll_id=scroll_id)
+
+        print(f"총 {len(doc_ids)}개 문서 ID 로드 완료")
+        return doc_ids
+
+    except Exception as e:
+        print(f"문서 ID 로드 오류: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return []
+
+
 def fetch_all_documents(client: OpenSearch) -> list[dict]:
-    """OpenSearch에서 모든 문서의 ID와 임베딩 가져오기"""
+    """OpenSearch에서 모든 문서의 ID와 임베딩 가져오기 (기존 함수 유지)"""
     documents = []
 
     try:
@@ -113,13 +162,147 @@ def fetch_all_documents(client: OpenSearch) -> list[dict]:
         return []
 
 
+def build_graph_using_opensearch_knn(
+    client: OpenSearch,
+    doc_ids: list[str],
+    similarity_threshold: float = SIMILARITY_THRESHOLD,
+    top_k: int = TOP_K_NEIGHBORS,
+    max_workers: Optional[int] = None,
+) -> nx.Graph:
+    """
+    OpenSearch의 k-NN 검색을 사용하여 그래프 생성 (최적화된 버전)
+
+    Args:
+        client: OpenSearch 클라이언트
+        doc_ids: 문서 ID 리스트
+        similarity_threshold: 엣지를 생성할 최소 유사도 임계값
+        top_k: 각 문서당 최대 연결 수
+        max_workers: 병렬 처리 스레드 수 (None이면 MAX_WORKERS 사용)
+
+    Returns:
+        NetworkX 그래프 객체
+    """
+    graph = nx.Graph()
+
+    if max_workers is None:
+        max_workers = MAX_WORKERS
+
+    print(f"\n그래프 생성 시작 (OpenSearch k-NN 사용)...")
+    print(f"  - 문서 수: {len(doc_ids)}")
+    print(f"  - 유사도 임계값: {similarity_threshold}")
+    print(f"  - 문서당 최대 연결 수: {top_k}")
+    print(f"  - 병렬 처리 스레드 수: {max_workers}")
+
+    # 모든 문서를 노드로 추가
+    for doc_id in doc_ids:
+        graph.add_node(doc_id)
+
+    def process_document(doc_id: str) -> list[tuple[str, float]]:
+        """단일 문서에 대한 유사 문서 찾기"""
+        try:
+            # 해당 문서의 임베딩 가져오기
+            doc = client.get(
+                index=OPENSEARCH_INDEX,
+                id=doc_id,
+                _source=[OPENSEARCH_EMBEDDING_FIELD],
+            )
+            embedding = doc["_source"].get(OPENSEARCH_EMBEDDING_FIELD)
+
+            if not embedding:
+                return []
+
+            # k-NN 검색으로 유사한 문서 찾기
+            # top_k보다 더 많이 가져와서 임계값 필터링 후 상위 k개 선택
+            search_k = max(top_k * 2, 50)  # 최소 50개는 가져오기
+
+            search_body = {
+                "size": search_k,
+                "query": {
+                    "knn": {
+                        OPENSEARCH_EMBEDDING_FIELD: {
+                            "vector": embedding,
+                            "k": search_k,
+                        }
+                    }
+                },
+                "_source": False,  # ID만 필요
+            }
+
+            response = client.search(index=OPENSEARCH_INDEX, body=search_body)
+
+            # 유사도가 임계값 이상인 문서만 필터링
+            edges = []
+            for hit in response["hits"]["hits"]:
+                neighbor_id = hit["_id"]
+                # OpenSearch의 코사인 유사도는 _score로 반환됨
+                # cosinesimil 공간 타입 사용 시 이미 정규화된 값
+                similarity = hit["_score"]
+
+                if similarity >= similarity_threshold and neighbor_id != doc_id:
+                    edges.append((neighbor_id, similarity))
+
+            # 상위 k개만 선택
+            edges.sort(key=lambda x: x[1], reverse=True)
+            return edges[:top_k]
+
+        except Exception as e:
+            print(f"  ⚠️  문서 {doc_id} 처리 오류: {e}")
+            return []
+
+    # 병렬 처리로 각 문서에 대한 유사 문서 찾기
+    processed = 0
+    total = len(doc_ids)
+
+    if max_workers > 1:
+        # 병렬 처리
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_doc_id = {
+                executor.submit(process_document, doc_id): doc_id for doc_id in doc_ids
+            }
+
+            for future in as_completed(future_to_doc_id):
+                doc_id = future_to_doc_id[future]
+                try:
+                    edges = future.result()
+                    for neighbor_id, similarity in edges:
+                        graph.add_edge(doc_id, neighbor_id, weight=similarity)
+
+                    processed += 1
+                    if processed % 100 == 0:
+                        print(
+                            f"  진행률: {processed}/{total} ({processed*100//total}%)"
+                        )
+                except Exception as e:
+                    print(f"  ⚠️  문서 {doc_id} 처리 중 오류: {e}")
+    else:
+        # 순차 처리
+        for doc_id in doc_ids:
+            edges = process_document(doc_id)
+            for neighbor_id, similarity in edges:
+                graph.add_edge(doc_id, neighbor_id, weight=similarity)
+
+            processed += 1
+            if processed % 100 == 0:
+                print(f"  진행률: {processed}/{total} ({processed*100//total}%)")
+
+    print(f"\n그래프 생성 완료!")
+    print(f"  - 노드 수: {graph.number_of_nodes()}")
+    print(f"  - 엣지 수: {graph.number_of_edges()}")
+    if graph.number_of_nodes() > 0:
+        print(
+            f"  - 평균 연결 수: {graph.number_of_edges() * 2 / graph.number_of_nodes():.2f}"
+        )
+
+    return graph
+
+
 def build_graph_from_embeddings(
     documents: list[dict],
     similarity_threshold: float = SIMILARITY_THRESHOLD,
     top_k: int = TOP_K_NEIGHBORS,
 ) -> nx.Graph:
     """
-    임베딩 유사도를 기반으로 그래프 생성
+    임베딩 유사도를 기반으로 그래프 생성 (기존 함수 유지 - 호환성)
 
     Args:
         documents: [{"id": str, "embedding": np.ndarray}, ...] 형태의 문서 리스트
@@ -218,23 +401,26 @@ def save_graph(graph: nx.Graph, output_file: str):
 def main():
     """메인 함수"""
     print("=" * 60)
-    print("문서 관계 그래프 생성 시작")
+    print("문서 관계 그래프 생성 시작 (OpenSearch k-NN 최적화 버전)")
     print("=" * 60)
 
     # OpenSearch 클라이언트 생성
     client = get_opensearch_client()
 
     try:
-        # 모든 문서 가져오기
-        documents = fetch_all_documents(client)
+        # 모든 문서 ID만 가져오기 (메모리 효율적)
+        doc_ids = fetch_all_document_ids(client)
 
-        if not documents:
+        if not doc_ids:
             print("⚠️  문서가 없습니다.")
             return
 
-        # 그래프 생성
-        graph = build_graph_from_embeddings(
-            documents, similarity_threshold=SIMILARITY_THRESHOLD, top_k=TOP_K_NEIGHBORS
+        # OpenSearch k-NN 검색을 사용하여 그래프 생성
+        graph = build_graph_using_opensearch_knn(
+            client,
+            doc_ids,
+            similarity_threshold=SIMILARITY_THRESHOLD,
+            top_k=TOP_K_NEIGHBORS,
         )
 
         # 그래프 저장
