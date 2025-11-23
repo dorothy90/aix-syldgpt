@@ -19,6 +19,18 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         <div className="whitespace-pre-wrap break-words">
           {message.content || <span className="text-gray-400">...</span>}
         </div>
+
+        {/* LOT 그래프 이미지 표시 */}
+        {!isUser && message.plotImage && (
+          <div className="mt-3 pt-3 border-t border-gray-300">
+            <img
+              src={`data:image/png;base64,${message.plotImage}`}
+              alt="LOT 그래프"
+              className="max-w-full h-auto rounded-lg shadow-md"
+              style={{ maxHeight: '500px' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

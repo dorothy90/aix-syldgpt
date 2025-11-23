@@ -3,6 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  plotImage?: string; // Base64 인코딩된 그래프 이미지
 }
 
 export interface Session {
@@ -24,7 +25,7 @@ export interface ChatRequest {
 export async function* streamChatMessage(
   message: string,
   sessionId?: string
-): AsyncGenerator<{ type: string; content?: string; session_id?: string; error?: string }, void, unknown> {
+): AsyncGenerator<{ type: string; content?: string; session_id?: string; error?: string; image?: string }, void, unknown> {
   const response = await fetch(`${API_URL}/api/chat/stream`, {
     method: 'POST',
     headers: {

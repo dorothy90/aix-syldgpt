@@ -76,6 +76,20 @@ class GraphService:
 
         return self.app.invoke(inputs, config=config)
 
+    def get_state(self, config: RunnableConfig) -> dict:
+        """
+        현재 thread_id의 최종 state를 가져옴
+
+        Args:
+            config: RunnableConfig (thread_id 포함)
+
+        Returns:
+            dict: 현재 state
+        """
+        # get_state를 사용하여 현재 state 가져오기
+        state = self.app.get_state(config)
+        return state.values if hasattr(state, "values") else {}
+
 
 # 싱글톤 인스턴스
 graph_service = GraphService()

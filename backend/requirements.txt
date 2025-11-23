@@ -11,3 +11,7 @@ langchain-community>=0.3.27
 langgraph>=0.5.4
 langchain-teddynote>=0.4
 
+# LOT 그래프 생성 의존성
+pandas>=2.0.0
+matplotlib>=3.7.0
+

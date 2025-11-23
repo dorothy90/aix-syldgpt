@@ -81,6 +81,18 @@ async def stream_chat(request: ChatRequest):
 
             # 스트리밍 완료 알림
             if stream_success:
+                # 최종 state에서 LOT 그래프 이미지 가져오기
+                lot_plot_image = None
+                try:
+                    final_state = graph_service.get_state(config)
+                    lot_plot_image = final_state.get("lot_plot_image")
+                except Exception as e:
+                    print(f"LOT 그래프 이미지 가져오기 실패: {e}")
+
+                # LOT 그래프 이미지가 있으면 전송
+                if lot_plot_image:
+                    yield f"data: {json.dumps({'type': 'plot', 'image': lot_plot_image})}\n\n"
+
                 yield f"data: {json.dumps({'type': 'done', 'content': full_content})}\n\n"
 
                 # 세션에 메시지 추가 및 업데이트

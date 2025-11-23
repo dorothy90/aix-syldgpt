@@ -95,6 +95,7 @@ export function useChat() {
       let receivedSessionId = sessionId;
 
       // 스트리밍 처리
+      let plotImage: string | undefined = undefined;
       for await (const chunk of api.streamChatMessage(content, sessionId)) {
         if (chunk.type === 'session_id' && chunk.session_id) {
           receivedSessionId = chunk.session_id;
@@ -104,19 +105,39 @@ export function useChat() {
             setCurrentSession(newSession);
             await loadSessions();
           }
+        } else if (chunk.type === 'plot' && chunk.image) {
+          // LOT 그래프 이미지 수신
+          plotImage = chunk.image;
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent || '그래프를 생성했습니다.',
+              plotImage: plotImage
+            };
+            return updated;
+          });
         } else if (chunk.type === 'token' && chunk.content) {
           fullContent += chunk.content;
           // 실시간으로 메시지 업데이트
           setMessages(prev => {
             const updated = [...prev];
-            updated[assistantMessageIndex] = { role: 'assistant', content: fullContent };
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent,
+              plotImage: plotImage
+            };
             return updated;
           });
         } else if (chunk.type === 'done' && chunk.content) {
           fullContent = chunk.content;
           setMessages(prev => {
             const updated = [...prev];
-            updated[assistantMessageIndex] = { role: 'assistant', content: fullContent };
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent,
+              plotImage: plotImage
+            };
             return updated;
           });
         } else if (chunk.type === 'error') {
