@@ -1,8 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+export interface DocumentReference {
+  filename: string;
+  content: string;
+  url: string;
+}
+
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  documents?: DocumentReference[];  // API에서 검색된 문서들
 }
 
 export interface Session {
@@ -24,7 +31,7 @@ export interface ChatRequest {
 export async function* streamChatMessage(
   message: string,
   sessionId?: string
-): AsyncGenerator<{ type: string; content?: string; session_id?: string; error?: string }, void, unknown> {
+): AsyncGenerator<{ type: string; content?: string; session_id?: string; error?: string; documents?: DocumentReference[] }, void, unknown> {
   const response = await fetch(`${API_URL}/api/chat/stream`, {
     method: 'POST',
     headers: {

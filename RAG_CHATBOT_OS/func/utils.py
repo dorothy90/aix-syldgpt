@@ -17,6 +17,25 @@ def format_searched_docs(docs):
     )
 
 
+def format_api_documents(api_docs: list[dict]) -> str:
+    """
+    API에서 받은 문서들을 format_searched_docs와 동일한 형식으로 포맷팅
+
+    Args:
+        api_docs: [{"filename": "...", "content": "...", "url": "..."}, ...]
+
+    Returns:
+        포맷팅된 문서 문자열
+    """
+    formatted = []
+    for doc in api_docs:
+        formatted.append(
+            f"<document><content>{doc.get('content', '')}</content>"
+            f"<source>filename={doc.get('filename', '')}, url={doc.get('url', '')}</source></document>"
+        )
+    return "\n".join(formatted)
+
+
 def format_task(tasks):
     # 결과를 저장할 빈 리스트 생성
     task_time_pairs = []

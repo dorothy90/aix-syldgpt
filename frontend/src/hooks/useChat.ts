@@ -93,6 +93,7 @@ export function useChat() {
     try {
       let fullContent = '';
       let receivedSessionId = sessionId;
+      let documents: api.DocumentReference[] = [];
 
       // 스트리밍 처리
       for await (const chunk of api.streamChatMessage(content, sessionId)) {
@@ -104,19 +105,40 @@ export function useChat() {
             setCurrentSession(newSession);
             await loadSessions();
           }
+        } else if (chunk.type === 'documents' && chunk.documents) {
+          // 문서 정보 받기
+          documents = chunk.documents;
+          // 메시지에 문서 정보 추가
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent,
+              documents: documents
+            };
+            return updated;
+          });
         } else if (chunk.type === 'token' && chunk.content) {
           fullContent += chunk.content;
           // 실시간으로 메시지 업데이트
           setMessages(prev => {
             const updated = [...prev];
-            updated[assistantMessageIndex] = { role: 'assistant', content: fullContent };
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent,
+              documents: documents.length > 0 ? documents : undefined
+            };
             return updated;
           });
         } else if (chunk.type === 'done' && chunk.content) {
           fullContent = chunk.content;
           setMessages(prev => {
             const updated = [...prev];
-            updated[assistantMessageIndex] = { role: 'assistant', content: fullContent };
+            updated[assistantMessageIndex] = {
+              role: 'assistant',
+              content: fullContent,
+              documents: documents.length > 0 ? documents : undefined
+            };
             return updated;
           });
         } else if (chunk.type === 'error') {

@@ -2,6 +2,7 @@ fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 python-dotenv>=1.1.1
+httpx>=0.24.0
 
 # RAG_CHATBOT_OS 의존성
 opensearch-py>=2.0.0
