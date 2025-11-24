@@ -193,6 +193,7 @@ def merge_answers(state: GraphState) -> GraphState:
     """두 답변을 LLM을 사용하여 종합하고 자연스럽게 연결"""
     opensearch_answer = state.get("opensearch_answer", "")
     api_answer = state.get("api_answer", "")
+    api_documents = state.get("api_documents", [])  # API 문서 메타데이터 가져오기
     latest_question = state["question"]
 
     # 둘 다 답변이 없는 경우
@@ -202,6 +203,24 @@ def merge_answers(state: GraphState) -> GraphState:
             "answer": error_msg,
             "messages": [("user", latest_question), ("assistant", error_msg)],
         }
+
+    # API 문서의 URL 정보 추출
+    api_urls = []
+    if api_documents:
+        for doc in api_documents:
+            url = doc.get("url", "")
+            filename = doc.get("filename", "")
+            if url:
+                api_urls.append(f"- {filename}: {url}" if filename else f"- {url}")
+
+    # URL 정보를 포함한 프롬프트 생성
+    url_section = ""
+    if api_urls:
+        url_section = (
+            f"\n\n[참고 문서 링크]\n"
+            + "\n".join(api_urls)
+            + "\n\n위 링크들을 답변에 자연스럽게 포함시켜주세요."
+        )
 
     # 병합 프롬프트 생성
     merge_prompt = PromptTemplate.from_template(
@@ -216,6 +235,7 @@ def merge_answers(state: GraphState) -> GraphState:
 
 [출처 2: 외부 API]
 {answer2}
+{url_section}
 
 종합 답변:"""
     )
@@ -230,6 +250,7 @@ def merge_answers(state: GraphState) -> GraphState:
             "question": latest_question,
             "answer1": opensearch_answer if opensearch_answer else "내용 없음",
             "answer2": api_answer if api_answer else "내용 없음",
+            "url_section": url_section,
         }
     )
 
