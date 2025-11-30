@@ -48,7 +48,8 @@ class GraphService:
             str: 스트리밍된 토큰들
         """
         # GraphState는 TypedDict이므로 딕셔너리로 사용
-        inputs = {"question": question}
+        # messages를 빈 리스트로 초기화 (multiturn 대화 지원 - checkpointer가 이전 messages를 merge함)
+        inputs = {"question": question, "messages": []}
 
         # stream_mode="messages"로 LLM 토큰 단위 스트리밍
         # 반환 형태: (chunk_msg, metadata) 튜플
@@ -73,7 +74,8 @@ class GraphService:
             dict: 실행 결과
         """
         # GraphState는 TypedDict이므로 딕셔너리로 사용
-        inputs = {"question": question}
+        # messages를 빈 리스트로 초기화 (multiturn 대화 지원 - checkpointer가 이전 messages를 merge함)
+        inputs = {"question": question, "messages": []}
 
         return self.app.invoke(inputs, config=config)
 

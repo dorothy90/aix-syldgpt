@@ -142,3 +142,4 @@ def create_lot_plot(df: pd.DataFrame, lot_id: str) -> Optional[str]:
         print(f"그래프 생성 오류: {e}")
         plt.close()
         return None
+
