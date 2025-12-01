@@ -5,10 +5,17 @@ from uuid import uuid4
 import json
 from typing import Optional
 from datetime import datetime
+import logging
 
 from app.models.schemas import ChatRequest, Session, Message
 from app.services.graph_service import graph_service
 from app.api.sessions import sessions_store
+
+# 디버그 로거 설정
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -24,9 +31,27 @@ async def stream_chat(request: ChatRequest):
     Returns:
         StreamingResponse: Server-Sent Events 스트리밍 응답
     """
+    # ==================== 디버그 로그 ====================
+    logger.debug("=" * 60)
+    logger.debug("[SESSION DEBUG] 새 요청 수신")
+    logger.debug(f"[SESSION DEBUG] 요청 메시지: {request.message[:50]}...")
+    logger.debug(f"[SESSION DEBUG] 요청된 session_id: {request.session_id}")
+    logger.debug(f"[SESSION DEBUG] session_id 타입: {type(request.session_id)}")
+    logger.debug(f"[SESSION DEBUG] session_id is None: {request.session_id is None}")
+    logger.debug(f"[SESSION DEBUG] session_id == '': {request.session_id == ''}")
+    logger.debug(
+        f"[SESSION DEBUG] 현재 sessions_store 키: {list(sessions_store.keys())}"
+    )
+    # =====================================================
+
     # session_id가 없으면 새로 생성
     is_new_session = request.session_id is None
     session_id = request.session_id or str(uuid4())
+
+    # ==================== 디버그 로그 ====================
+    logger.debug(f"[SESSION DEBUG] is_new_session 판정: {is_new_session}")
+    logger.debug(f"[SESSION DEBUG] 사용할 session_id: {session_id}")
+    # =====================================================
 
     # 새 세션이면 sessions_store에 저장
     if is_new_session:
@@ -45,6 +70,26 @@ async def stream_chat(request: ChatRequest):
             updated_at=now,
         )
         sessions_store[session_id] = session
+        # ==================== 디버그 로그 ====================
+        logger.info(f"[SESSION DEBUG] ⭐ 새 세션 생성됨: {session_id}")
+        logger.debug(f"[SESSION DEBUG] 세션 제목: {title}")
+        # =====================================================
+    else:
+        # ==================== 디버그 로그 ====================
+        if session_id in sessions_store:
+            existing_session = sessions_store[session_id]
+            logger.info(f"[SESSION DEBUG] ✅ 기존 세션 사용: {session_id}")
+            logger.debug(
+                f"[SESSION DEBUG] 기존 세션 메시지 수: {len(existing_session.messages)}"
+            )
+        else:
+            logger.warning(
+                f"[SESSION DEBUG] ⚠️ session_id가 있지만 sessions_store에 없음: {session_id}"
+            )
+            logger.warning(
+                f"[SESSION DEBUG] 현재 store 키들: {list(sessions_store.keys())}"
+            )
+        # =====================================================
 
     # RunnableConfig 설정 (thread_id로 세션 ID 전달)
     config = RunnableConfig(recursion_limit=10, configurable={"thread_id": session_id})
@@ -56,6 +101,7 @@ async def stream_chat(request: ChatRequest):
 
         try:
             # 세션 ID 전송
+            logger.debug(f"[SESSION DEBUG] 클라이언트에 session_id 전송: {session_id}")
             yield f"data: {json.dumps({'type': 'session_id', 'session_id': session_id})}\n\n"
 
             # 스트리밍 시작 알림
@@ -92,6 +138,13 @@ async def stream_chat(request: ChatRequest):
                     sessions_store[session_id].updated_at = datetime.now().strftime(
                         "%Y-%m-%d %H:%M"
                     )
+                    # ==================== 디버그 로그 ====================
+                    logger.debug(f"[SESSION DEBUG] 세션에 메시지 저장 완료")
+                    logger.debug(
+                        f"[SESSION DEBUG] 현재 세션 메시지 수: {len(sessions_store[session_id].messages)}"
+                    )
+                    logger.debug("=" * 60)
+                    # =====================================================
 
         except Exception as e:
             # 에러 발생 시
