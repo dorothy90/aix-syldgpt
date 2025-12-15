@@ -3,6 +3,14 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  artifacts?: Artifact[];
+}
+
+export interface Artifact {
+  type: 'html' | 'image';
+  mime: string;
+  data: string;
+  title?: string | null;
 }
 
 export interface Session {
@@ -24,7 +32,11 @@ export interface ChatRequest {
 export async function* streamChatMessage(
   message: string,
   sessionId?: string
-): AsyncGenerator<{ type: string; content?: string; session_id?: string; error?: string }, void, unknown> {
+): AsyncGenerator<
+  { type: string; content?: string; session_id?: string; error?: string; artifacts?: Artifact[] },
+  void,
+  unknown
+> {
   const response = await fetch(`${API_URL}/api/chat/stream`, {
     method: 'POST',
     headers: {

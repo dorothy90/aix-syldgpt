@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import chat, sessions
+from app.api import chat, sessions, mes
 
 app = FastAPI(title="RAG Chatbot API", version="1.0.0")
 
@@ -21,6 +21,7 @@ app.add_middleware(
 # 라우터 등록
 app.include_router(chat.router)
 app.include_router(sessions.router)
+app.include_router(mes.router)
 
 
 @app.get("/health")

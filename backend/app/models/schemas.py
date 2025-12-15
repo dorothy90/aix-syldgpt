@@ -3,9 +3,17 @@ from typing import Optional, List
 from datetime import datetime
 
 
+class Artifact(BaseModel):
+    type: str  # "html" | "image" (image는 추후)
+    mime: str  # "text/html" | "image/png" ...
+    data: str  # html string or base64
+    title: Optional[str] = None
+
+
 class Message(BaseModel):
     role: str  # "user" or "assistant"
     content: str
+    artifacts: Optional[List[Artifact]] = None
 
 
 class ChatRequest(BaseModel):

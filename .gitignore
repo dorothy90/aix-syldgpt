@@ -23,3 +23,6 @@ CLAUDE.md
 *.faiss
 *.pkl
 RAG_CHATBOT/func/file_embed_drm_macos.py
+backend/app/data/lot_history.csv
+.gitignore
+REACT_AGENT/04-React-Agent.ipynb

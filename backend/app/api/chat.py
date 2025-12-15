@@ -127,12 +127,31 @@ async def stream_chat(request: ChatRequest):
 
             # 스트리밍 완료 알림
             if stream_success:
-                yield f"data: {json.dumps({'type': 'done', 'content': full_content})}\n\n"
+                # 그래프 최종 상태에서 answer/artifacts를 회수
+                final_answer = full_content
+                artifacts = []
+                try:
+                    final_state = graph_service.app.get_state(config)
+                    values = getattr(final_state, "values", {}) or {}
+                    if values.get("answer"):
+                        final_answer = values["answer"]
+                    artifacts = values.get("artifacts") or []
+                except Exception:
+                    # 상태 조회 실패 시에도 기존 스트리밍 결과는 유지
+                    artifacts = []
+
+                yield f"data: {json.dumps({'type': 'done', 'content': final_answer})}\n\n"
+                if artifacts:
+                    yield f"data: {json.dumps({'type': 'artifacts', 'artifacts': artifacts})}\n\n"
 
                 # 세션에 메시지 추가 및 업데이트
                 if session_id in sessions_store:
                     user_message = Message(role="user", content=request.message)
-                    assistant_message = Message(role="assistant", content=full_content)
+                    assistant_message = Message(
+                        role="assistant",
+                        content=final_answer,
+                        artifacts=artifacts or None,
+                    )
                     sessions_store[session_id].messages.append(user_message)
                     sessions_store[session_id].messages.append(assistant_message)
                     sessions_store[session_id].updated_at = datetime.now().strftime(

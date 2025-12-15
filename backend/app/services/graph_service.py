@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import AsyncIterator
 from langchain_core.runnables import RunnableConfig
 
-# RAG_CHATBOT_OS 디렉토리를 Python 경로에 추가
+# RAG_CHATBOT 디렉토리를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent.parent
-rag_chatbot_os_path = project_root / "RAG_CHATBOT_OS"
-sys.path.insert(0, str(rag_chatbot_os_path))
+rag_chatbot_path = project_root / "RAG_CHATBOT"
+sys.path.insert(0, str(rag_chatbot_path))
 
 
 class GraphService:

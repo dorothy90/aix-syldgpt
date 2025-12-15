@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Message, Session } from '../services/api';
+import { Message, Session, Artifact } from '../services/api';
 import * as api from '../services/api';
 
 export function useChat() {
@@ -117,6 +117,16 @@ export function useChat() {
           setMessages(prev => {
             const updated = [...prev];
             updated[assistantMessageIndex] = { role: 'assistant', content: fullContent };
+            return updated;
+          });
+        } else if (chunk.type === 'artifacts' && chunk.artifacts) {
+          const artifacts = chunk.artifacts as Artifact[];
+          setMessages(prev => {
+            const updated = [...prev];
+            const current = updated[assistantMessageIndex];
+            if (current && current.role === 'assistant') {
+              updated[assistantMessageIndex] = { ...current, artifacts };
+            }
             return updated;
           });
         } else if (chunk.type === 'error') {
