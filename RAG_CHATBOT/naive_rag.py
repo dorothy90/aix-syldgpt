@@ -71,7 +71,7 @@ def llm_answer(state: GraphState) -> GraphState:
     # 질문을 상태에서 가져옴
     latest_question = state["question"][-1].content
     # 검색된 문서를 상태에서 가져옴
-    context = state["context"]
+    context = state.get("context", "")
 
     # 체인을 스트리밍으로 호출하여 답변 생성
     # stream()을 사용하면 LangGraph의 stream_mode="messages"가 작동함
@@ -96,6 +96,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 # Query Rewrite 프롬프트 정의
 from langchain_core.prompts import load_prompt
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 
@@ -114,6 +115,37 @@ def query_rewrite(state: GraphState) -> GraphState:
     question_rewritten = question_rewriter.invoke({"question": latest_question})
     return {"question": HumanMessage(content=question_rewritten)}
 
+# Route (query_rewrite 이후 retrieve vs direct answer)
+route_prompt = ChatPromptTemplate.from_template(
+    """너는 RAG 라우터다.
+아래 질문에 답하려면 지식베이스 검색이 필요한지 판단해라.
+
+- 출력은 반드시 한 단어로만: "retrieve" 또는 "direct"
+- "direct"는 일반 상식/대화/간단한 설명처럼 검색 없이도 답할 수 있을 때
+
+질문: {question}
+"""
+)
+
+route_decider = (
+    route_prompt
+    | ChatOpenAI(model=model_name, base_url=base_url, api_key=api_key, temperature=0)
+    | StrOutputParser()
+)
+
+
+def route_after_rewrite(state: GraphState) -> str:
+    q = state["question"][-1].content
+    decision = route_decider.invoke({"question": q}).strip().lower()
+
+    # 모델 출력이 약간 흔들려도 안전하게 처리
+    if "direct" in decision:
+        return "llm_answer"
+    if "retrieve" in decision:
+        return "retrieve"
+    # 애매하면 안전하게 retrieve로
+    return "retrieve"
+
 
 # %%
 from langgraph.graph import END, StateGraph
@@ -128,7 +160,14 @@ workflow.add_node("query_rewrite", query_rewrite)
 workflow.add_node("llm_answer", llm_answer)
 
 # workflow 엣지 추가
-workflow.add_edge("query_rewrite", "retrieve")
+workflow.add_conditional_edges(
+    "query_rewrite",
+    route_after_rewrite,
+    {
+        "retrieve": "retrieve",
+        "llm_answer": "llm_answer",
+    },
+)
 workflow.add_edge("retrieve", "llm_answer")
 workflow.add_edge("llm_answer", END)
 
