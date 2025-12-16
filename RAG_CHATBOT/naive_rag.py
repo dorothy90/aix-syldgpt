@@ -191,18 +191,53 @@ def _http_get_json(url: str, timeout_sec: float = 5.0) -> Dict[str, Any]:
         return {"error": type(e).__name__, "detail": str(e)}
 
 
+def _http_post_json(url: str, body: Dict[str, Any], timeout_sec: float = 5.0) -> Any:
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+            raw = resp.read().decode("utf-8")
+            return json.loads(raw) if raw else []
+    except urllib.error.HTTPError as e:
+        try:
+            raw = e.read().decode("utf-8")
+            parsed = json.loads(raw) if raw else None
+        except Exception:
+            parsed = None
+        # MES 규칙: 항상 list[dict] 형태 유지
+        if isinstance(parsed, list):
+            return parsed
+        return [{"error": f"HTTPError {e.code}", "detail": raw}]
+    except Exception as e:
+        return [{"error": type(e).__name__, "detail": str(e)}]
+
+
 @tool
-def mes_get_lot_status(lot_id: str) -> Dict[str, Any]:
+def mes_get_lot_status(lot_id: str) -> Any:
     """MES API로 LOT 현재 상태를 조회합니다. lot_id는 7자리(3자리 lotcode + 4자리 숫자)입니다."""
     lot_id = str(lot_id).strip()
-    return _http_get_json(f"http://127.0.0.1:8000/api/mes/lot_status/{lot_id}")
+    return _http_post_json(
+        "http://127.0.0.1:8000/api/mes/lot_status",
+        {"lot_id": lot_id},
+    )
 
 
 @tool
-def mes_get_lot_history(lot_id: str) -> Dict[str, Any]:
+def mes_get_lot_history(lot_id: str) -> Any:
     """MES API로 LOT 이력을 조회합니다. lot_id는 7자리(3자리 lotcode + 4자리 숫자)입니다."""
     lot_id = str(lot_id).strip()
-    return _http_get_json(f"http://127.0.0.1:8000/api/mes/lot_history/{lot_id}")
+    return _http_post_json(
+        "http://127.0.0.1:8000/api/mes/lot_history",
+        {"lot_id": lot_id},
+    )
 
 
 _MES_TOOLS = [mes_get_lot_status, mes_get_lot_history]
@@ -229,9 +264,11 @@ def _html_escape(s: Any) -> str:
     )
 
 
-def _render_mes_html(kind: str, lot_id: str, payload: Dict[str, Any]) -> str:
-    data = payload.get("data") or {}
-    found = bool(data.get("found"))
+def _render_mes_html(kind: str, lot_id: str, payload: Any) -> str:
+    rows: List[Dict[str, Any]] = payload if isinstance(payload, list) else []
+    first: Dict[str, Any] = rows[0] if rows and isinstance(rows[0], dict) else {}
+    is_error = bool(first.get("error"))
+    found = bool(rows) and (not is_error)
 
     # 공통 wrapper(엔드포인트별로 항상 일정한 형식 유지)
     header = (
@@ -252,11 +289,15 @@ def _render_mes_html(kind: str, lot_id: str, payload: Dict[str, Any]) -> str:
     sub = f"<div class='mes-sub'>LOT: <span class='mes-badge'>{_html_escape(lot_id) if lot_id else '-'}</span></div>"
 
     if not found:
-        body = f"<div class='mes-empty'>{_html_escape(data.get('error') or '조회 결과가 없습니다.')}</div>"
+        if is_error:
+            msg = first.get("detail") or first.get("error") or "오류가 발생했습니다."
+        else:
+            msg = "조회 결과가 없습니다."
+        body = f"<div class='mes-empty'>{_html_escape(msg)}</div>"
         return style + header + sub + body + footer
 
     if kind == "lot_history":
-        events = data.get("events") or []
+        events = rows
         rows_html = ""
         for ev in events:
             rows_html += (
@@ -276,7 +317,7 @@ def _render_mes_html(kind: str, lot_id: str, payload: Dict[str, Any]) -> str:
         return style + header + sub + table + footer
 
     # lot_status
-    row = (data.get("row") or {}) if isinstance(data, dict) else {}
+    row = first
     table = (
         "<table class='mes-table'>"
         "<tbody>"
@@ -310,12 +351,13 @@ def mes_agent(state: GraphState) -> GraphState:
 
     final = _mes_agent_executor.invoke({"messages": [system, HumanMessage(content=q)]})
     msgs = final.get("messages", [])
-
+    print(f"msgs: {msgs}")
     # 가장 최근 tool 결과/호출을 찾아 kind/lot_id/payload 확보
     kind = None
     lot_id = None
-    payload = None
+    payload: Any = None
     for m in reversed(msgs):
+        print(f"m: {m}")
         if isinstance(m, ToolMessage) and m.name in (
             "mes_get_lot_status",
             "mes_get_lot_history",
@@ -324,10 +366,9 @@ def mes_agent(state: GraphState) -> GraphState:
             try:
                 payload = json.loads(m.content)
             except Exception:
-                payload = {"data": {"found": False, "error": "tool 결과 파싱 실패"}}
-            # lot_id는 payload에 포함돼 있으면 사용
-            if isinstance(payload, dict):
-                lot_id = payload.get("lot_id") or lot_id
+                payload = [{"error": "parse_error", "detail": "tool 결과 파싱 실패"}]
+            if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+                lot_id = payload[0].get("lot_id") or lot_id
             break
 
     if not kind or not payload:
@@ -341,13 +382,18 @@ def mes_agent(state: GraphState) -> GraphState:
         # tool이 호출됐는데 lot_id가 없다면 payload에서 복구
         lot_id = (payload.get("lot_id") if isinstance(payload, dict) else None) or ""
 
-    data = payload.get("data") if isinstance(payload, dict) else {}
-    found = bool((data or {}).get("found"))
+    rows = payload if isinstance(payload, list) else []
+    first = rows[0] if rows and isinstance(rows[0], dict) else {}
+    is_error = bool(first.get("error"))
+    found = bool(rows) and (not is_error)
 
     if not lot_id:
         answer = "LOT 번호(예: ABC0001)를 포함해서 다시 질문해 주세요."
     elif not found:
-        answer = f"{lot_id} 조회 결과가 없습니다."
+        if is_error and (first.get("error") == "file_error"):
+            answer = "MES 데이터 파일을 읽는 중 오류가 발생했습니다."
+        else:
+            answer = f"{lot_id} 조회 결과가 없습니다."
     else:
         answer = f"{lot_id} {('이력' if kind == 'lot_history' else '현재 상태')}입니다."
 

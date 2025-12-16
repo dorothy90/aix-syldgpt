@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from uuid import uuid4
 from langchain_core.runnables import RunnableConfig
 from datetime import datetime
@@ -247,6 +248,16 @@ def render_history() -> None:
     for msg in messages:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
+            # artifacts(예: MES HTML 카드) 렌더링
+            artifacts = msg.get("artifacts") or []
+            if isinstance(artifacts, list):
+                for art in artifacts:
+                    if not isinstance(art, dict):
+                        continue
+                    if art.get("type") == "html":
+                        html = art.get("data") or ""
+                        if html:
+                            components.html(html, height=320, scrolling=True)
 
 
 def render_sidebar() -> None:
@@ -355,6 +366,17 @@ def render_sidebar() -> None:
             st.info("채팅 히스토리가 없습니다.")
 
 
+def _extract_artifacts_from_graph_state(config: RunnableConfig) -> List[Dict]:
+    """그래프 최종 상태에서 artifacts를 추출합니다(MES HTML 등)."""
+    try:
+        final_state = graph_app.get_state(config)
+        values = getattr(final_state, "values", {}) or {}
+        artifacts = values.get("artifacts") or []
+        return artifacts if isinstance(artifacts, list) else []
+    except Exception:
+        return []
+
+
 def ask_and_answer(user_text: str) -> None:
     """사용자 질문을 받아 LangGraph로 답변 생성 및 MongoDB에 저장"""
     session_id = get_current_session_id()
@@ -400,13 +422,23 @@ def ask_and_answer(user_text: str) -> None:
         with st.chat_message("assistant"):
             # st.write_stream으로 스트리밍 출력하고 전체 답변 수집
             answer = st.write_stream(stream_response())
+            # 스트리밍이 끝난 뒤 최종 artifacts(MES HTML 등) 렌더링
+            artifacts = _extract_artifacts_from_graph_state(config)
+            if artifacts:
+                for art in artifacts:
+                    if isinstance(art, dict) and art.get("type") == "html":
+                        html = art.get("data") or ""
+                        if html:
+                            components.html(html, height=320, scrolling=True)
 
     except Exception as e:
         st.error(f"그래프 실행 중 오류가 발생했습니다: {e}")
         return
 
     # 어시스턴트 메시지 추가
-    messages.append({"role": "assistant", "content": str(answer)})
+    messages.append(
+        {"role": "assistant", "content": str(answer), "artifacts": artifacts or []}
+    )
 
     # MongoDB에 메시지 업데이트 저장
     save_session_to_db(session_id, st.session_state.sessions[session_id])
