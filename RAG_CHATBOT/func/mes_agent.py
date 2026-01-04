@@ -6,13 +6,22 @@ import json
 import re
 import urllib.request
 import urllib.error
+import io
+import base64
 from typing import Any, Dict, List, Optional, Union, Literal
+from pathlib import Path
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib
 
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.tools import tool
+from langchain.agents import create_agent
 
+from rich import print
 
 # Option B: 이 모듈이 독립적으로 .env를 로드하고 모델 설정을 읽는다.
 load_dotenv(override=True)
@@ -22,6 +31,7 @@ _API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 def _http_post_json(url: str, body: Dict[str, Any], timeout_sec: float = 5.0) -> Any:
+    """MES 백엔드 API 호출 유틸리티"""
     data = json.dumps(body).encode("utf-8")
     req = urllib.request.Request(
         url,
@@ -42,7 +52,6 @@ def _http_post_json(url: str, body: Dict[str, Any], timeout_sec: float = 5.0) ->
             parsed = json.loads(raw) if raw else None
         except Exception:
             parsed = None
-        # MES 규칙: 항상 list[dict] 형태 유지
         if isinstance(parsed, list):
             return parsed
         return [{"error": f"HTTPError {e.code}", "detail": raw}]
@@ -50,77 +59,18 @@ def _http_post_json(url: str, body: Dict[str, Any], timeout_sec: float = 5.0) ->
         return [{"error": type(e).__name__, "detail": str(e)}]
 
 
-# -------------------- MES 필터 파서(LLM 구조화 출력) --------------------
-_MES_ALLOWED_FIELDS = ["event_time", "event", "step", "eqp", "details"]
-_MES_ALLOWED_OPS = ["eq", "contains", "in", "gte", "lte"]
-
-
-class MESFilterCondition(BaseModel):
-    field: Literal["event_time", "event", "step", "eqp", "details"]
-    op: Literal["eq", "contains", "in", "gte", "lte"] = "eq"
-    value: Union[str, int, float, List[str]]
-
-
-class ParsedMESQuery(BaseModel):
-    kind: Literal["lot_status", "lot_history"] = "lot_history"
-    lot_id: Optional[str] = None
-    filters: List[MESFilterCondition] = Field(default_factory=list)
-    limit: Optional[int] = None
-    # 날짜 범위처럼 연도 누락 시 추측하지 않고 확인 질문으로 유도
-    needs_year: bool = False
-    year_question: Optional[str] = None
-    pending_time_range: Optional[Dict[str, str]] = (
-        None  # {"start_mmdd":"11-01","end_mmdd":"11-20"}
-    )
-
-
-_mes_parser_llm = ChatOpenAI(
-    model=_MODEL_NAME,
-    base_url=_BASE_URL,
-    api_key=_API_KEY,
-    temperature=0,
-).with_structured_output(ParsedMESQuery)
-
-
-def parse_mes_query_with_llm(
-    user_question: str,
-    last_lot_id: Optional[str] = None,
-    existing_filters: Optional[List[Dict[str, Any]]] = None,
-) -> ParsedMESQuery:
-    """
-    자연어 질문 → (kind, lot_id, filters, limit) 구조화.
-    - 누적형 재질문을 위해 last_lot_id/existing_filters를 힌트로 제공
-    - 연도 없는 날짜 범위는 needs_year=true로 반환(추측 금지)
-    """
-    existing_filters = existing_filters or []
-    system = SystemMessage(
-        content=(
-            "너는 MES 질의 파서다. 사용자의 자연어를 아래 스키마로 변환해라.\n"
-            f"- kind는 lot_status 또는 lot_history\n"
-            f"- field는 반드시 {_MES_ALLOWED_FIELDS} 중 하나\n"
-            f"- op는 반드시 {_MES_ALLOWED_OPS} 중 하나\n"
-            "- filters는 '데이터 포함/제외'를 결정하는 조건만 넣어라.\n"
-            "- 사용자가 '그중에/그거에서/거기서/추가로/만'처럼 재질문하면, "
-            "lot_id가 생략될 수 있으니 last_lot_id를 참고해도 된다.\n"
-            "- 기존 조건(existing_filters)은 참고 정보일 뿐이며, 새로운 조건만 filters로 출력해라.\n"
-            "- 날짜 범위에서 연도가 없으면 절대 추측하지 말고 needs_year=true로 하고 "
-            "year_question에 '연도를 포함해서 다시 요청해주세요'는 한 문장을 넣어라.\n"
-            "- 이 경우 event_time 필터는 만들지 말고, pending_time_range에 "
-            '{"start_mmdd":"MM-DD","end_mmdd":"MM-DD"} 형태로만 저장해라.\n'
-            "lot_id 자체를 찾기 위한 필터(예: details에 lot_id 포함)는 만들지 마라. lot_id는 lot_id 필드로만 지정해라.\n"
-        )
-    )
-    hint = (
-        f"last_lot_id={last_lot_id}\n"
-        f"existing_filters={json.dumps(existing_filters, ensure_ascii=False)}"
-    )
-    human = HumanMessage(content=f"{hint}\n\nuser_question={user_question}")
-    return _mes_parser_llm.invoke([system, human])
-
-
+# -------------------- MES Tools --------------------
 @tool
 def mes_get_lot_status(lot_id: str) -> Any:
-    """MES API로 LOT 현재 상태를 조회합니다. lot_id는 7자리(3자리 lotcode + 4자리 숫자)입니다."""
+    """
+    MES API로 LOT 현재 상태를 조회합니다.
+
+    Args:
+        lot_id: LOT 번호 (예: ABC0001). 7자리(3자리 lotcode + 4자리 숫자) 형태입니다.
+
+    Returns:
+        LOT의 현재 상태 정보 (product, step, eqp, status, updated_at 포함)
+    """
     lot_id = str(lot_id).strip()
     return _http_post_json(
         "http://127.0.0.1:8000/api/mes/lot_status",
@@ -134,7 +84,19 @@ def mes_get_lot_history(
     filters: Optional[List[Dict[str, Any]]] = None,
     limit: Optional[int] = None,
 ) -> Any:
-    """MES API로 LOT 이력을 조회합니다. 필요하면 filters/limit를 함께 전달합니다."""
+    """
+    MES API로 LOT 이력을 조회합니다.
+
+    Args:
+        lot_id: LOT 번호 (예: ABC0001)
+        filters: 필터 조건 리스트. 각 필터는 {"field": str, "op": str, "value": Any} 형태.
+                 - field: event_time, event, step, eqp, details 중 하나
+                 - op: eq, contains, in, gte, lte 중 하나
+        limit: 최대 조회 개수
+
+    Returns:
+        LOT 이력 리스트 (event_time, event, step, eqp, details 포함)
+    """
     lot_id = str(lot_id).strip()
     body: Dict[str, Any] = {"lot_id": lot_id}
     if filters:
@@ -147,6 +109,220 @@ def mes_get_lot_history(
     )
 
 
+# WIP Report CSV 파일 경로 설정
+_WIP_CSV_PATH = (
+    Path(__file__).parent.parent.parent / "backend" / "app" / "data" / "wip_report.csv"
+)
+
+
+@tool
+def mes_get_wip_report(
+    step: Optional[str] = None,
+    chamb_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    WIP Report를 조회하여 날짜별 lot count를 bar chart로 시각화합니다.
+
+    Args:
+        step: 필터링할 step (예: "step001"). None이면 전체 step 대상으로 집계합니다.
+        chamb_id: 컬러링할 chamber ID (예: "CH01").
+                  - 지정 시: 해당 chamb_id만 표시 (단일 색상)
+                  - 미지정 시: 전체 chamb_id별로 컬러링 (stacked bar chart)
+
+    Returns:
+        날짜별 lot count 데이터 및 bar chart 이미지(base64)
+        - x축: end_tm의 날짜 (yyyy-mm-dd)
+        - y축: lot count
+        - chamb_id별 컬러링
+    """
+
+    # 한글 폰트 설정 (matplotlib 백엔드)
+    matplotlib.use("Agg")
+    plt.rcParams["font.family"] = [
+        "AppleGothic",
+        "Malgun Gothic",
+        "NanumGothic",
+        "sans-serif",
+    ]
+    plt.rcParams["axes.unicode_minus"] = False
+
+    try:
+        df = pd.read_csv(_WIP_CSV_PATH)
+    except FileNotFoundError:
+        return [
+            {
+                "error": "FileNotFoundError",
+                "detail": f"WIP CSV 파일을 찾을 수 없습니다: {_WIP_CSV_PATH}",
+            }
+        ]
+    except Exception as e:
+        return [{"error": type(e).__name__, "detail": str(e)}]
+
+    # end_tm을 datetime으로 파싱하고 날짜만 추출
+    df["end_tm"] = pd.to_datetime(df["end_tm"])
+    df["date"] = df["end_tm"].dt.strftime("%Y-%m-%d")
+
+    # step 필터링 적용
+    if step:
+        df = df[df["step"].str.contains(step, case=False, na=False)]
+        print(f"[DEBUG]   - step 필터링 후: {len(df)} rows")
+
+    # chamb_id 필터링 (지정된 경우에만)
+    if chamb_id:
+        df = df[df["chamb_id"].str.contains(chamb_id, case=False, na=False)]
+
+    if df.empty:
+        return [{"error": "NoData", "detail": "조건에 맞는 WIP 데이터가 없습니다."}]
+
+    # Bar chart 생성
+    fig, ax = plt.subplots(figsize=(14, 6))
+
+    if chamb_id:
+        # chamb_id가 지정된 경우: 해당 chamb만 단일 색상으로 표시
+        date_counts = df.groupby("date")["lot_id"].count().sort_index()
+        colors = plt.cm.tab20.colors
+        bars = ax.bar(
+            date_counts.index, date_counts.values, color=colors[0], edgecolor="white"
+        )
+        ax.set_ylabel("LOT Count")
+        ax.set_xlabel("Date")
+        title_parts = ["WIP Report - 날짜별 LOT Count"]
+        if step:
+            title_parts.append(f"Step: {step}")
+        title_parts.append(f"Chamber: {chamb_id}")
+        ax.set_title(" | ".join(title_parts))
+    else:
+        # chamb_id가 없는 경우: chamb별 컬러링 (stacked bar chart)
+        pivot = df.pivot_table(
+            index="date",
+            columns="chamb_id",
+            values="lot_id",
+            aggfunc="count",
+            fill_value=0,
+        )
+        pivot = pivot.sort_index()
+
+        # Stacked bar chart
+        colors = plt.cm.tab20.colors
+        bottom = None
+        for idx, col in enumerate(pivot.columns):
+            color = colors[idx % len(colors)]
+            if bottom is None:
+                ax.bar(
+                    pivot.index, pivot[col], label=col, color=color, edgecolor="white"
+                )
+                bottom = pivot[col].values
+            else:
+                ax.bar(
+                    pivot.index,
+                    pivot[col],
+                    bottom=bottom,
+                    label=col,
+                    color=color,
+                    edgecolor="white",
+                )
+                bottom = bottom + pivot[col].values
+
+        ax.legend(
+            title="Chamber", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8
+        )
+        ax.set_ylabel("LOT Count")
+        ax.set_xlabel("Date")
+        title_suffix = f" (Step: {step})" if step else ""
+        ax.set_title(f"WIP Report - 날짜별 LOT Count{title_suffix}")
+
+    # X축 라벨 회전
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+
+    # 이미지를 base64로 인코딩
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=100, bbox_inches="tight")
+    buf.seek(0)
+    img_b64 = base64.b64encode(buf.read()).decode("utf-8")
+    buf.close()
+    plt.close(fig)
+
+    # 집계 데이터 준비 (날짜별)
+    date_counts = df.groupby("date")["lot_id"].count().to_dict()
+    total_lots = df["lot_id"].count()
+
+    return [
+        {
+            "chart_image": img_b64,
+            "date_counts": date_counts,
+            "total_lots": int(total_lots),
+            "filter_step": step,
+            "filter_chamb": chamb_id,
+        }
+    ]
+
+
+# -------------------- MES Agent (create_agent 패턴) --------------------
+
+# MES Agent용 시스템 프롬프트
+MES_SYSTEM_PROMPT = """당신은 MES(Manufacturing Execution System) 전문 어시스턴트입니다.
+
+사용자가 LOT 상태나 이력에 대해 질문하면 적절한 도구를 사용하여 정보를 조회하고 답변합니다.
+
+## 사용 가능한 도구:
+1. **mes_get_lot_status**: LOT의 현재 상태/정보(product, step, eqp, status, updated_at)를 조회
+2. **mes_get_lot_history**: LOT의 이력(event_time, event, step, eqp, details)을 조회
+3. **mes_get_wip_report**: WIP 데이터 조회 및 날짜별 lot count bar chart 시각화
+   - x축: end_tm의 날짜 (yyyy-mm-dd)
+   - y축: lot count
+   - step: 필터링할 step (예: "step001", 옵션) - 데이터 필터링에 사용
+   - chamb_id: 컬러링할 chamber (예: "CH01", 옵션)
+     - 지정 시: 해당 chamber만 표시 (단일 색상)
+     - 미지정 시: 전체 chamber별로 컬러링 (stacked bar chart)
+
+## 응답 규칙:
+- LOT 번호는 반드시 7자리 형태(예: ABC0001)로 사용합니다.
+- 사용자가 LOT 번호를 언급하지 않으면, LOT 번호를 먼저 요청하세요.
+- 이력 조회 시 날짜 범위가 필요하면 filters를 활용하세요.
+- WIP 조회 시 step으로 데이터를 필터링하고, chamb_id로 컬러링을 구분할 수 있습니다.
+- 조회 결과가 없으면 명확하게 안내합니다.
+- 응답은 한국어로 친절하게 제공합니다.
+
+## 필터 사용 예시:
+- 특정 날짜 이후: {"field": "event_time", "op": "gte", "value": "2025-01-01 00:00:00"}
+- 특정 이벤트만: {"field": "event", "op": "eq", "value": "TRACK_IN"}
+- 특정 step만: {"field": "step", "op": "contains", "value": "DIFF"}
+
+## WIP 조회 예시:
+- 전체 WIP 현황 (날짜별, 전체 chamber 컬러링): mes_get_wip_report()
+- 특정 step의 WIP (날짜별, 전체 chamber 컬러링): mes_get_wip_report(step="step001")
+- 특정 chamber의 WIP (날짜별, 단일 색상): mes_get_wip_report(chamb_id="CH01")
+- step 필터 + chamber 컬러: mes_get_wip_report(step="step001", chamb_id="CH01")
+
+## 중요: 응답 형식
+- 도구 호출 결과는 별도의 HTML 카드로 자동 표시됩니다.
+- 따라서 **테이블이나 표를 직접 만들지 마세요**.
+- 조회 결과에 대해 간단한 요약/설명만 1-2문장으로 작성하세요.
+- 예시: "ABC0001 LOT은 현재 DIFF-10 공정에서 RUN 상태입니다."
+- WIP 예시: "현재 전체 WIP는 1,234개 LOT이며, 12월 20일에 가장 많은 LOT이 처리되었습니다."
+"""
+
+# MES 전용 도구 리스트
+MES_TOOLS = [mes_get_lot_status, mes_get_lot_history, mes_get_wip_report]
+
+# MES Agent용 모델
+_mes_model = ChatOpenAI(
+    model=_MODEL_NAME,
+    base_url=_BASE_URL,
+    api_key=_API_KEY,
+    temperature=0,
+)
+
+# create_agent로 MES Agent 생성
+mes_react_agent = create_agent(
+    model=_mes_model,
+    tools=MES_TOOLS,
+    system_prompt=MES_SYSTEM_PROMPT,
+)
+
+
+# -------------------- HTML 렌더링 (기존 유지) --------------------
 def _html_escape(s: Any) -> str:
     txt = "" if s is None else str(s)
     return (
@@ -164,7 +340,6 @@ def _render_mes_html(kind: str, lot_id: str, payload: Any) -> str:
     is_error = bool(first.get("error"))
     found = bool(rows) and (not is_error)
 
-    # 공통 wrapper(엔드포인트별로 항상 일정한 형식 유지)
     header = (
         f"<div class='mes-card'><div class='mes-title'>MES: {_html_escape(kind)}</div>"
     )
@@ -210,6 +385,30 @@ def _render_mes_html(kind: str, lot_id: str, payload: Any) -> str:
         )
         return style + header + sub + table + footer
 
+    if kind == "wip_report":
+        # WIP Report: bar chart 이미지 렌더링
+        img_b64 = first.get("chart_image", "")
+        filter_step = first.get("filter_step") or "전체"
+        filter_chamb = first.get("filter_chamb") or "전체"
+        total_lots = first.get("total_lots", 0)
+
+        wip_header = (
+            f"<div class='mes-card'><div class='mes-title'>MES: WIP Report</div>"
+        )
+        wip_sub = (
+            f"<div class='mes-sub'>"
+            f"Step: <span class='mes-badge'>{_html_escape(filter_step)}</span> | "
+            f"Chamber: <span class='mes-badge'>{_html_escape(filter_chamb)}</span> | "
+            f"Total LOTs: <span class='mes-badge'>{total_lots}</span>"
+            f"</div>"
+        )
+        img_html = (
+            f"<div style='text-align:center;'>"
+            f"<img src='data:image/png;base64,{img_b64}' style='max-width:100%;border-radius:8px;'/>"
+            f"</div>"
+        )
+        return style + wip_header + wip_sub + img_html + footer
+
     # lot_status
     row = first
     table = (
@@ -225,140 +424,90 @@ def _render_mes_html(kind: str, lot_id: str, payload: Any) -> str:
     return style + header + sub + table + footer
 
 
+# -------------------- LangGraph 노드용 래퍼 함수 --------------------
 def mes_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    naive_rag.py의 LangGraph 노드로 바로 연결되는 MES 처리 함수.
-    - parse_mes_query_with_llm로 (kind, lot_id, filters, limit) 구조화
-    - 백엔드 MES API 호출
-    - 고정 HTML 템플릿 artifacts 반환
+    naive_rag.py의 LangGraph 노드로 연결되는 MES 처리 함수.
+    내부적으로 create_agent로 만든 mes_react_agent를 호출합니다.
     """
+    print(f"\n{'='*60}")
+
     q = state["question"]
     mes_ctx = state.get("mes_ctx") or {}
-    last_lot_id = mes_ctx.get("last_lot_id")
-    existing_filters: List[Dict[str, Any]] = list(mes_ctx.get("filters") or [])
-    last_limit = mes_ctx.get("limit")
-    last_kind = mes_ctx.get("last_kind")
+    print(f"question: {q}")
+    print(f"mes_ctx: {mes_ctx}")
 
-    parsed = parse_mes_query_with_llm(
-        user_question=q, last_lot_id=last_lot_id, existing_filters=existing_filters
-    )
+    # 이전 대화 히스토리 구성
+    messages = state.get("messages", [])
+    # mes_react_agent 호출
+    result = mes_react_agent.invoke({"messages": messages + [HumanMessage(content=q)]})
 
-    # 연도 누락 등으로 확인 질문이 필요한 경우(조회 보류)
-    if getattr(parsed, "needs_year", False):
-        pending = getattr(parsed, "pending_time_range", None)
+    print(f"result: {result}")
 
-        # pending_time_range는 반드시 MM-DD 형태여야 나중에 연도만 받아서 조립 가능
-        def _is_mmdd(v: Any) -> bool:
-            if not isinstance(v, str) or "-" not in v:
-                return False
-            a, b = v.split("-", 1)
-            return (
-                a.isdigit() and b.isdigit() and 1 <= int(a) <= 12 and 1 <= int(b) <= 31
-            )
+    # 결과에서 마지막 AI 메시지 추출
+    ai_messages = [m for m in result.get("messages", []) if isinstance(m, AIMessage)]
 
-        if not (
-            isinstance(pending, dict)
-            and _is_mmdd(str(pending.get("start_mmdd", "")))
-            and _is_mmdd(str(pending.get("end_mmdd", "")))
-        ):
-            pending = None
-        answer = parsed.year_question or (
-            "날짜 범위에 연도/월 정보가 필요합니다. 예: 2025년 12월 16일"
-            if pending is None
-            else "연도를 포함해서 다시 말해달라"
-        )
-        return {
-            "answer": answer,
-            "messages": [HumanMessage(content=q), AIMessage(content=answer)],
-            "mes_ctx": {**mes_ctx, "pending_time_range": pending, "active": True},
-        }
+    answer = ai_messages[-1].content if ai_messages else "MES 조회에 실패했습니다."
 
-    kind = getattr(parsed, "kind", None) or last_kind or "lot_history"
-    lot_id = (getattr(parsed, "lot_id", None) or last_lot_id or "").strip()
+    # LOT ID 추출 (응답에서 LOT 패턴 찾기)
+    lot_match = re.search(r"\b([A-Z]{3}\d{4})\b", q)
+    lot_id = lot_match.group(1) if lot_match else mes_ctx.get("last_lot_id", "")
 
-    if not lot_id:
-        answer = "LOT 번호(예: ABC0001)를 포함해서 다시 질문해 주세요."
-        return {
-            "answer": answer,
-            "messages": [HumanMessage(content=q), AIMessage(content=answer)],
-            "mes_ctx": {**mes_ctx, "active": True},
-        }
+    # 조회 종류 판별 및 도구 호출 결과에서 payload 추출
+    kind = "lot_history"
+    payload = None
 
-    # 연도만 뒤늦게 들어온 재질문 처리: pending_time_range + year로 event_time 범위를 생성해 누적
-    pending = mes_ctx.get("pending_time_range")
-    year_match = re.search(r"(19\d{2}|20\d{2})\s*년", q)
-    injected_time_filters: List[Dict[str, Any]] = []
-    if pending and year_match:
-        y = int(year_match.group(1))
-        try:
-            start_mmdd = str(pending.get("start_mmdd") or "")
-            end_mmdd = str(pending.get("end_mmdd") or "")
-            sm, sd = [int(x) for x in start_mmdd.split("-")]
-            em, ed = [int(x) for x in end_mmdd.split("-")]
-            start = f"{y}-{sm:02d}-{sd:02d} 00:00:00"
-            end = f"{y}-{em:02d}-{ed:02d} 23:59:59"
-            injected_time_filters = [
-                {"field": "event_time", "op": "gte", "value": start},
-                {"field": "event_time", "op": "lte", "value": end},
-            ]
-            # 연도 확인이 끝났으니 pending 제거
-            mes_ctx = {**mes_ctx, "pending_time_range": None}
-        except Exception:
-            injected_time_filters = []
+    # ToolMessage에서 도구 실행 결과 추출
+    from langchain_core.messages import ToolMessage
 
-    new_filters = [f.model_dump() for f in (getattr(parsed, "filters", None) or [])]
-    if injected_time_filters:
-        new_filters = injected_time_filters + new_filters
-    # 최소 보정: event_time은 CSV에 시간까지 들어가므로 YYYY-MM-DD만 eq로 주면 매칭이 안 됨 → contains로 변경
-    for f in new_filters:
-        if (
-            isinstance(f, dict)
-            and (f.get("field") == "event_time")
-            and (str(f.get("op") or "eq").lower() == "eq")
-            and isinstance(f.get("value"), str)
-            and re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(f.get("value")).strip())
-        ):
-            f["op"] = "contains"
-            f["value"] = str(f["value"]).strip()
+    for idx, msg in enumerate(result.get("messages", [])):
 
-    # 누적 정책: 항상 AND로 append
-    combined_filters = existing_filters + new_filters if kind == "lot_history" else []
+        # AIMessage인 경우 tool_calls 상세 분석
+        if isinstance(msg, AIMessage):
 
-    # limit = getattr(parsed, "limit", None)
-    # if limit is None:
-    #     limit = last_limit
-    # 변경 후: 사용자가 말한 경우(LLM이 명시적으로 limit을 낸 경우)에만 적용
-    limit = getattr(parsed, "limit", None)
-    # 실제 조회(결정론 필터링은 백엔드가 수행)
-    if kind == "lot_status":
-        payload = mes_get_lot_status.invoke({"lot_id": lot_id})
+            # tool_calls가 비어있지만 additional_kwargs에 있는 경우 확인
+            ak_tool_calls = msg.additional_kwargs.get("tool_calls", [])
+            if not msg.tool_calls and ak_tool_calls:
+                print(
+                    f"!!! WARNING: tool_calls가 비어있지만 additional_kwargs에 있음 !!!"
+                )
+                print(f"!!! additional_kwargs['tool_calls']: {ak_tool_calls}")
+
+        if isinstance(msg, ToolMessage):
+            try:
+                # 도구 결과 파싱
+                tool_result = msg.content
+                if isinstance(tool_result, str):
+                    print(
+                        f"[DEBUG]   content (str): {tool_result[:200]}..."
+                        if len(tool_result) > 200
+                        else f"[DEBUG]   content (str): {tool_result}"
+                    )
+                    tool_result = json.loads(tool_result)
+                payload = tool_result
+
+                # 도구 이름으로 kind 판별
+                if msg.name == "mes_get_lot_status":
+                    kind = "lot_status"
+                elif msg.name == "mes_get_lot_history":
+                    kind = "lot_history"
+                elif msg.name == "mes_get_wip_report":
+                    kind = "wip_report"
+            except (json.JSONDecodeError, TypeError) as e:
+                payload = None
+
+    # HTML 아티팩트 생성
+    artifacts = []
+
+    if payload and (lot_id or kind == "wip_report"):
+        print(f"[DEBUG]   - 조건 충족! HTML 렌더링 시작")
+        html = _render_mes_html(kind=kind, lot_id=lot_id, payload=payload)
+        artifacts = [{"type": "html", "mime": "text/html", "data": html, "title": kind}]
+        print(f"[DEBUG]   - artifacts 생성 완료 (HTML 길이: {len(html)} chars)")
     else:
-        tool_input: Dict[str, Any] = {"lot_id": lot_id}
-        if combined_filters:
-            tool_input["filters"] = combined_filters
-        if limit is not None:
-            tool_input["limit"] = limit
-        payload = mes_get_lot_history.invoke(tool_input)
+        print(f"[DEBUG]   - 조건 미충족! artifacts 비어있음")
 
-    rows = payload if isinstance(payload, list) else []
-    first = rows[0] if rows and isinstance(rows[0], dict) else {}
-    is_error = bool(first.get("error"))
-    found = bool(rows) and (not is_error)
-
-    if not lot_id:
-        answer = "LOT 번호(예: ABC0001)를 포함해서 다시 질문해 주세요."
-    elif not found:
-        if is_error and (first.get("error") == "file_error"):
-            answer = "MES 데이터 파일을 읽는 중 오류가 발생했습니다."
-        else:
-            answer = f"{lot_id} 조회 결과가 없습니다."
-    else:
-        answer = f"{lot_id} {('이력' if kind == 'lot_history' else '현재 상태')}입니다."
-
-    html = _render_mes_html(kind=kind, lot_id=lot_id, payload=payload)
-    artifacts = [{"type": "html", "mime": "text/html", "data": html, "title": kind}]
-
-    return {
+    result_dict = {
         "answer": answer,
         "artifacts": artifacts,
         "messages": [HumanMessage(content=q), AIMessage(content=answer)],
@@ -366,8 +515,19 @@ def mes_agent(state: Dict[str, Any]) -> Dict[str, Any]:
             "active": True,
             "last_kind": kind,
             "last_lot_id": lot_id,
-            "filters": combined_filters,
-            "limit": limit,
-            "pending_time_range": mes_ctx.get("pending_time_range"),
         },
     }
+    return result_dict
+
+
+# -------------------- 직접 실행 테스트 --------------------
+if __name__ == "__main__":
+    from langchain_teddynote.messages import stream_graph
+
+    # 테스트: create_agent로 만든 MES Agent 실행
+    print("=== MES Agent 테스트 (create_agent 패턴) ===\n")
+
+    stream_graph(
+        mes_react_agent,
+        inputs={"messages": [HumanMessage(content="ABC0001 LOT의 현재 상태를 알려줘")]},
+    )

@@ -233,25 +233,25 @@ memory = MemorySaver()
 
 # 컴파일
 app = workflow.compile(checkpointer=memory)
-# %%
-# 그래프 시각화 및 샘플 실행 (직접 실행 시에만 동작)
-if __name__ == "__main__":
-    from langchain_teddynote.graphs import visualize_graph
+# # %%
+# # 그래프 시각화 및 샘플 실행 (직접 실행 시에만 동작)
+# if __name__ == "__main__":
+#     from langchain_teddynote.graphs import visualize_graph
 
-    visualize_graph(app)
+#     visualize_graph(app)
 
-    from langchain_core.runnables import RunnableConfig
-    from langchain_teddynote.messages import invoke_graph, stream_graph, random_uuid
+#     from langchain_core.runnables import RunnableConfig
+#     from langchain_teddynote.messages import invoke_graph, stream_graph, random_uuid
 
-    # config 설정 (재귀 리밋, thread_id)
-    config = RunnableConfig(
-        recursion_limit=5, configurable={"thread_id": random_uuid()}
-    )
+#     # config 설정 (재귀 리밋, thread_id)
+#     config = RunnableConfig(
+#         recursion_limit=5, configurable={"thread_id": random_uuid()}
+#     )
 
-    # 질문 입력
-    inputs: GraphState = {"question": "attentiom 메커니즘에 대해서 알려줘"}
+#     # 질문 입력
+#     inputs: GraphState = {"question": "attentiom 메커니즘에 대해서 알려줘"}
 
-    invoke_graph(app, inputs, config)
+#     invoke_graph(app, inputs, config)
 
 
 # %%

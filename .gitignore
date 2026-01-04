@@ -26,3 +26,11 @@ RAG_CHATBOT/func/file_embed_drm_macos.py
 backend/app/data/lot_history.csv
 .gitignore
 REACT_AGENT/04-React-Agent.ipynb
+03-Agent/01-LangGraph-Agents.ipynb
+backend/app/data/lot_status.csv
+backend/app/data/wip_report.csv
+03-Agent/03-LangGraph-Streaming.ipynb
+03-Agent/05-LangGraph-Structured-Output.ipynb
+03-Agent/04-LangGraph-Runtime.ipynb
+03-Agent/02-LangGraph-Tools.ipynb
+backend/app/data/lot_status.csv
