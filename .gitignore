@@ -34,3 +34,16 @@ backend/app/data/wip_report.csv
 03-Agent/04-LangGraph-Runtime.ipynb
 03-Agent/02-LangGraph-Tools.ipynb
 backend/app/data/lot_status.csv
+wads_agent_html/layer1_2025-48_20260103_224828.html
+wads_agent_html/layer1_2025-48_20260103_225348.html
+wads_agent_html/layer1_2025-48_20260103_225643.html
+wads_agent_html/layer1_2025-48_20260103_225816.html
+wads_agent_html/layer1_2025-48_20260103_225955.html
+wads_agent_html/layer1_2025-48_20260103_231332.html
+wads_agent_html/layer1_2025-48_20260103_231639.html
+wads_agent_html/layer1_2025-48_20260103_232008.html
+wads_agent_html/layer1_2025-48_20260103_232428.html
+.cursor/debug.log
+frontend/src/vite-env.d.ts
+.gitignore
+backend/app/data/lot_status.csv

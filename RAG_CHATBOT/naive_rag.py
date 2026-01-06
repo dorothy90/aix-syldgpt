@@ -61,6 +61,8 @@ class GraphState(TypedDict):
     route: Annotated[str, "Route"]
     # mes 관련 중간 상태는 ReAct agent 내부에서 처리
     mes_ctx: Annotated[Dict[str, Any], "MESContext"]
+    # wads 관련 중간 상태
+    wads_ctx: Annotated[Dict[str, Any], "WADSContext"]
 
 
 # node 정의
@@ -106,6 +108,9 @@ def llm_answer(state: GraphState) -> GraphState:
             HumanMessage(content=latest_question),
             AIMessage(content=response),
         ],
+        # 일반 답변 시 MES/WADS 모드 해제
+        "mes_ctx": {},
+        "wads_ctx": {},
     }
 
 
@@ -120,8 +125,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 import re
 
 from func.mes_agent import mes_agent
+from func.wads_agent import wads_agent
 
 _PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
+
 re_write_prompt = load_prompt(str(_PROMPTS_DIR / "rewrite.yaml"))
 
 question_rewriter = (
@@ -131,38 +138,24 @@ question_rewriter = (
 )
 
 
-# Query Rewrite 노드
-def query_rewrite(state: GraphState) -> GraphState:
+# Router Entry 노드 (passthrough - 바로 라우팅)
+def router_entry(state: GraphState) -> GraphState:
     q = str(state.get("question") or "").strip()
-    mes_ctx = state.get("mes_ctx") or {}
-
-    # MES 모드 종료/초기화 키워드(사용자가 일반 질문으로 돌아가고 싶을 때)
-    if re.search(
-        r"(mes\s*종료|메스\s*종료|모드\s*종료|일반\s*질문|리셋|초기화)", q, re.I
-    ):
-        return {"question": q, "mes_ctx": {}}
-
-    # MES 모드(active)에서는 리라이트를 건너뛰어 식별자/필터 토큰을 보존
-    if mes_ctx.get("active"):
-        return {"question": q}
-
-    # LOT 식별자는 리라이트로 변형될 여지가 있어 그대로 보존
-    if re.search(r"\b[A-Z]{3}\d{4}\b", q):
-        return {"question": q}
-
-    question_rewritten = question_rewriter.invoke({"question": q})
-    return {"question": str(question_rewritten).strip()}
+    return {"question": q}
 
 
-# Route (query_rewrite 이후 mes vs retrieve vs direct)
+# Route (query_rewrite 이후 mes vs wads vs retrieve vs direct)
 route_prompt = ChatPromptTemplate.from_template(
     """너는 라우터다. 아래 질문을 보고 다음 중 하나만 결정해라.
 
-- mes: LOT 상태/이력처럼 MES API 호출로 HTML을 만들어야 하는 질문
-- retrieve: 사내 문서/정의/절차 등 검색(RAG)이 필요한 질문
-- direct: 일반 상식/간단한 대화로 바로 답할 수 있는 질문
+- mes: LOT 상태/이력처럼 MES API 호출이 필요한 질문 (예: "ABC0001 상태", "LOT 이력")
+- wads: 주간 집계 데이터, 변곡점 분석, Layer1 리포트 관련 질문 (예: "wads 조회", "1월 4일 집계")
+- retrieve: 사내 문서/정의/절차 등 검색(RAG)이 필요한 질문 (예: "attention이 뭐야", "공정 절차 알려줘")
+- direct: 일반 대화, 인사, 잡담, 간단한 질문 (예: "안녕", "넌 뭐해", "고마워")
 
-출력은 반드시 한 단어로만: "mes" 또는 "retrieve" 또는 "direct"
+중요: "야", "뭐해", "안녕" 같은 짧은 일상 대화는 반드시 direct로 분류해라.
+
+출력은 반드시 한 단어로만: "mes" 또는 "wads" 또는 "retrieve" 또는 "direct"
 
 질문: {question}
 """
@@ -178,25 +171,27 @@ route_decider = (
 def route_main(state: GraphState) -> str:
     q = state["question"]
     mes_ctx = state.get("mes_ctx") or {}
+    wads_ctx = state.get("wads_ctx") or {}
 
-    # 한 번 MES로 진입하면 이후 질의는 전부 MES agent로 처리(재질문/필터 누적은 mes_agent가 담당)
-    if mes_ctx.get("active"):
-        return "mes"
+    # 짧은 질문(5자 이하)은 LLM 호출 없이 바로 direct로 라우팅
+    if len(q) <= 5:
+        return "direct"
 
-    # LOT 패턴은 결정론적으로 MES로 라우팅 (초기 라우팅 안정화)
-    if re.search(r"\b[A-Z]{3}\d{4}\b", q or ""):
-        return "mes"
-
+    # LLM 라우터가 모든 판단을 수행
     decision = route_decider.invoke({"question": q}).strip().lower()
 
-    # 모델 출력이 약간 흔들려도 안전하게 처리
+    # 모델 출력 파싱
     if "mes" in decision:
         return "mes"
+    if "wads" in decision:
+        return "wads"
     if "direct" in decision:
         return "direct"
     if "retrieve" in decision:
         return "retrieve"
-    return "retrieve"
+
+    # 기본값: direct (일반 대화로 처리)
+    return "direct"
 
 
 # %%
@@ -207,16 +202,18 @@ workflow = StateGraph(GraphState)
 
 # workflow 노드 추가
 workflow.add_node("retrieve", retrieve_document)
-workflow.add_node("query_rewrite", query_rewrite)
+workflow.add_node("router_entry", router_entry)
 workflow.add_node("llm_answer", llm_answer)
 workflow.add_node("mes_agent", mes_agent)
+workflow.add_node("wads_agent", wads_agent)
 
 # workflow 엣지 추가
 workflow.add_conditional_edges(
-    "query_rewrite",
+    "router_entry",
     route_main,
     {
         "mes": "mes_agent",
+        "wads": "wads_agent",
         "retrieve": "retrieve",
         "direct": "llm_answer",
     },
@@ -224,15 +221,17 @@ workflow.add_conditional_edges(
 workflow.add_edge("retrieve", "llm_answer")
 workflow.add_edge("llm_answer", END)
 workflow.add_edge("mes_agent", END)
+workflow.add_edge("wads_agent", END)
 
 # workflow 진입점 설정
-workflow.set_entry_point("query_rewrite")
+workflow.set_entry_point("router_entry")
 
 # 체크포인터 설정
 memory = MemorySaver()
 
 # 컴파일
 app = workflow.compile(checkpointer=memory)
+app
 # # %%
 # # 그래프 시각화 및 샘플 실행 (직접 실행 시에만 동작)
 # if __name__ == "__main__":

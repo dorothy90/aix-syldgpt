@@ -1,0 +1,2909 @@
+lotcd,end_tm,ctn_desc,html
+5NA,2026-01-01 18:07:01,step01,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .meta {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px 24px;
+            color: white;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+            font-weight: 600;
+            padding: 16px 12px;
+            text-align: left;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        th:first-child { width: 100px; }
+        th:nth-child(2) { width: 80px; }
+        th:nth-child(3) { width: 100px; }
+        th:last-child { min-width: 400px; }
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        /* Domain 스타일 */
+        .domain {
+            font-weight: 700;
+            font-size: 13px;
+        }
+        .domain-COMMON {
+            color: #1565c0;
+            background: linear-gradient(90deg, #e3f2fd 0%, transparent 100%);
+        }
+        .domain-DRAM {
+            color: #2e7d32;
+            background: linear-gradient(90deg, #e8f5e9 0%, transparent 100%);
+        }
+        .domain-NAND {
+            color: #ef6c00;
+            background: linear-gradient(90deg, #fff3e0 0%, transparent 100%);
+        }
+        /* Tech 스타일 */
+        .tech {
+            font-weight: 600;
+            color: #333;
+        }
+        /* 팀 배지 스타일 */
+        .team-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+            background: #e9ecef;
+        }
+        /* 업무 내용 */
+        .content {
+            color: #333;
+            line-height: 1.6;
+        }
+        /* 필터 영역 */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: white;
+            color: #1a1a2e;
+        }
+        /* 검색 */
+        .search-box {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: white;
+            font-size: 14px;
+            width: 250px;
+        }
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        .search-box:focus {
+            outline: none;
+            background: rgba(255,255,255,0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <h1>📋 Layer1 전수 집계 테이블 (2025-48)</h1>
+        <p class=""meta"">생성 시각: 2026-01-03 22:48:28</p>
+
+        <div class=""stats"">
+            <div class=""stat-card"">
+                <div class=""label"">총 업무 항목</div>
+                <div class=""value"">20</div>
+            </div>
+            <div class=""stat-card"">
+                <div class=""label"">COMMON</div>
+                <div class=""value"">6</div>
+            </div>
+            <div class=""stat-card"">
+                <div class=""label"">DRAM</div>
+                <div class=""value"">8</div>
+            </div>
+            <div class=""stat-card"">
+                <div class=""label"">NAND</div>
+                <div class=""value"">6</div>
+            </div>
+        </div>
+
+        <div class=""filters"">
+            <input type=""text"" class=""search-box"" placeholder=""🔍 검색..."" onkeyup=""filterTable(this.value)"">
+            <button class=""filter-btn active"" onclick=""filterDomain('all')"">전체</button>
+            <button class=""filter-btn"" onclick=""filterDomain('COMMON')"">COMMON</button>
+            <button class=""filter-btn"" onclick=""filterDomain('DRAM')"">DRAM</button>
+            <button class=""filter-btn"" onclick=""filterDomain('NAND')"">NAND</button>
+        </div>
+
+        <div class=""table-container"">
+            <table id=""mainTable"">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Tech</th>
+                        <th>팀</th>
+                        <th>업무 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">CS팀</span></td>
+                        <td class=""content"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                    </tr>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">DT팀</span></td>
+                        <td class=""content"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                    </tr>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">EQUIP팀</span></td>
+                        <td class=""content"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                    </tr>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">QA팀</span></td>
+                        <td class=""content"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                    </tr>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">TEST팀</span></td>
+                        <td class=""content"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                    </tr>
+                    <tr data-domain=""COMMON"">
+                        <td class=""domain domain-COMMON"">COMMON</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">YIELD팀</span></td>
+                        <td class=""content"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">FA팀</span></td>
+                        <td class=""content"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">PE팀</span></td>
+                        <td class=""content"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1a</td>
+                        <td><span class=""team-badge"">FA팀</span></td>
+                        <td class=""content"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1a</td>
+                        <td><span class=""team-badge"">QA팀</span></td>
+                        <td class=""content"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1b</td>
+                        <td><span class=""team-badge"">DT팀</span></td>
+                        <td class=""content"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1b</td>
+                        <td><span class=""team-badge"">YIELD팀</span></td>
+                        <td class=""content"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1c</td>
+                        <td><span class=""team-badge"">PE팀</span></td>
+                        <td class=""content"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                    </tr>
+                    <tr data-domain=""DRAM"">
+                        <td class=""domain domain-DRAM"">DRAM</td>
+                        <td class=""tech"">1d</td>
+                        <td><span class=""team-badge"">EQUIP팀</span></td>
+                        <td class=""content"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">PI팀</span></td>
+                        <td class=""content"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">공통</td>
+                        <td><span class=""team-badge"">PROCESS팀</span></td>
+                        <td class=""content"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">256</td>
+                        <td><span class=""team-badge"">TEST팀</span></td>
+                        <td class=""content"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">312</td>
+                        <td><span class=""team-badge"">CS팀</span></td>
+                        <td class=""content"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">312</td>
+                        <td><span class=""team-badge"">PI팀</span></td>
+                        <td class=""content"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                    </tr>
+                    <tr data-domain=""NAND"">
+                        <td class=""domain domain-NAND"">NAND</td>
+                        <td class=""tech"">400</td>
+                        <td><span class=""team-badge"">PROCESS팀</span></td>
+                        <td class=""content"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function filterTable(query) {
+            const rows = document.querySelectorAll('#mainTable tbody tr');
+            const q = query.toLowerCase();
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+
+        function filterDomain(domain) {
+            const rows = document.querySelectorAll('#mainTable tbody tr');
+            const buttons = document.querySelectorAll('.filter-btn');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            rows.forEach(row => {
+                if (domain === 'all') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = row.dataset.domain === domain ? '' : 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+"
+4SA,2026-01-01 19:17:15,step02,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#f5f5f5;"">
+    <div style=""max-width:900px; margin:0 auto;"">
+        <!-- 헤더 -->
+        <h1 style=""color:#1a1a2e; font-size:24px; margin-bottom:8px;"">📋 Layer1 전수 집계 테이블 (2025-48)</h1>
+        <p style=""color:#666; font-size:13px; margin-bottom:20px;"">생성 시각: 2026-01-03 22:53:48</p>
+
+        <!-- 요약 통계 -->
+        <table style=""margin-bottom:24px; border-collapse:collapse;"">
+            <tr>
+                <td style=""background:#1a1a2e; color:white; padding:12px 20px; text-align:center;"">
+                    <div style=""font-size:11px; color:#ccc;"">총 업무</div>
+                    <div style=""font-size:20px; font-weight:bold;"">20</div>
+                </td>
+                <td style=""background:#1565c0; color:white; padding:12px 20px; text-align:center;"">
+                    <div style=""font-size:11px; color:#ccc;"">COMMON</div>
+                    <div style=""font-size:20px; font-weight:bold;"">6</div>
+                </td>
+                <td style=""background:#2e7d32; color:white; padding:12px 20px; text-align:center;"">
+                    <div style=""font-size:11px; color:#ccc;"">DRAM</div>
+                    <div style=""font-size:20px; font-weight:bold;"">8</div>
+                </td>
+                <td style=""background:#ef6c00; color:white; padding:12px 20px; text-align:center;"">
+                    <div style=""font-size:11px; color:#ccc;"">NAND</div>
+                    <div style=""font-size:20px; font-weight:bold;"">6</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- COMMON 섹션 -->
+        <div style=""margin-bottom:24px;"">
+            <h2 style=""background:#1565c0; color:white; padding:12px 16px; margin:0; font-size:16px;"">
+                COMMON (6건)
+            </h2>
+            <table style=""width:100%; border-collapse:collapse; background:white; border:1px solid #ddd;"">
+                <thead>
+                    <tr style=""background:#f8f9fa;"">
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:70px; font-size:13px;"">Tech</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:80px; font-size:13px;"">팀</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; font-size:13px;"">업무 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">CS팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">DT팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">EQUIP팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">QA팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">TEST팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">YIELD팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- DRAM 섹션 -->
+        <div style=""margin-bottom:24px;"">
+            <h2 style=""background:#2e7d32; color:white; padding:12px 16px; margin:0; font-size:16px;"">
+                DRAM (8건)
+            </h2>
+            <table style=""width:100%; border-collapse:collapse; background:white; border:1px solid #ddd;"">
+                <thead>
+                    <tr style=""background:#f8f9fa;"">
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:70px; font-size:13px;"">Tech</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:80px; font-size:13px;"">팀</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; font-size:13px;"">업무 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">FA팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PE팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1a</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">FA팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1a</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">QA팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1b</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">DT팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1b</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">YIELD팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1c</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PE팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">1d</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">EQUIP팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- NAND 섹션 -->
+        <div style=""margin-bottom:24px;"">
+            <h2 style=""background:#ef6c00; color:white; padding:12px 16px; margin:0; font-size:16px;"">
+                NAND (6건)
+            </h2>
+            <table style=""width:100%; border-collapse:collapse; background:white; border:1px solid #ddd;"">
+                <thead>
+                    <tr style=""background:#f8f9fa;"">
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:70px; font-size:13px;"">Tech</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; width:80px; font-size:13px;"">팀</th>
+                        <th style=""padding:10px 12px; text-align:left; border-bottom:2px solid #ddd; font-size:13px;"">업무 내용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PI팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">공통</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PROCESS팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">256</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">TEST팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">312</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">CS팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">312</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PI팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                    </tr>
+                    <tr>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; font-weight:600; color:#333;"">400</td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee;"">
+                            <span style=""background:#e9ecef; padding:3px 10px; font-size:12px; color:#333;"">PROCESS팀</span>
+                        </td>
+                        <td style=""padding:10px 12px; border-bottom:1px solid #eee; color:#333; line-height:1.5;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>
+"
+6E2,2026-01-02 09:43:47,step03,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 22:56:43</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#1565c0; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#2e7d32; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#2e7d32; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#2e7d32; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#2e7d32; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#2e7d32; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ef6c00; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ef6c00; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ef6c00; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ef6c00; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+4SA,2026-01-02 11:08:47,step04,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 22:58:16</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#6fa8dc; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+5NA,2026-01-03 17:27:02,step05,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px; border-bottom:2px solid #333;"">
+                <b style=""font-size:18px; color:#222;"">Layer1 전수 집계 테이블 (2025-48)</b>
+                <br>
+                <span style=""color:#888; font-size:11px;"">생성 시각: 2026-01-03 22:59:55</span>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">COMMON / 공통</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">CS팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">DT팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">EQUIP팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">QA팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">TEST팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">YIELD팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">DRAM / 공통</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">FA팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PE팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">DRAM / 1a</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">FA팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">QA팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">DRAM / 1b</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">DT팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">YIELD팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">DRAM / 1c</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PE팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">DRAM / 1d</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">EQUIP팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">NAND / 공통</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PI팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PROCESS팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">NAND / 256</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">TEST팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">NAND / 312</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">CS팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PI팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-top:16px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""padding-bottom:6px; border-bottom:1px solid #999;"">
+                            <b style=""font-size:13px; color:#333;"">NAND / 400</b>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style=""padding-top:6px;"">
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                                <tr>
+                                    <td width=""70"" style=""padding:5px 0; font-size:12px; color:#666; vertical-align:top;"">PROCESS팀</td>
+                                    <td style=""padding:5px 0 5px 8px; font-size:12px; color:#333; line-height:1.5;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+4SA,2026-01-03 22:34:05,step06,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 23:13:32</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#6fa8dc; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a (12G LPDDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b (16G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c (12G LPDDR5X)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d (24G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256 (512Gb TLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312 (1Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400 (2Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+6E2,2026-01-04 08:05:13,step07,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 23:16:39</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#6fa8dc; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a (12G LPDDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b (16G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c (12G LPDDR5X)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d (24G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256 (512Gb TLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312 (1Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400 (2Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+6E2,2026-01-04 11:32:38,step08,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 23:20:08</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#6fa8dc; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a (12G LPDDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 고객사 샘플 출하 일정 조율 및 스펙 문서 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 수율 데이터 수집 파이프라인 신규 구축 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 전용 라인 신규 장비 셋업 진행률 85% 달성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 신규 불량 모드 TEM 분석 진행, bit line 단선 의심</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 공정 마진 확보를 위한 etch 조건 DOE 설계 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 제품 신뢰성 평가 결과: HTOL 1000hr 통과</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 레시피 v2.3 적용 후 수율 +0.8% 개선 확인</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 양산 전환 체크리스트 검토 및 승인 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 테스트 프로그램 최적화: 테스트 시간 15% 단축</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 초도 양산 수율 92.3% 달성, 목표 대비 +2.3%p</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b (16G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c (12G LPDDR5X)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d (24G DDR5)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256 (512Gb TLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312 (1Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400 (2Tb QLC)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
+5NA,2026-01-05 08:35:12,step09,"<!DOCTYPE html>
+<html lang=""ko"">
+<head>
+    <meta charset=""UTF-8"">
+    <title>Layer1 전수 집계 테이블 (2025-48)</title>
+</head>
+<body style=""margin:0; padding:20px; font-family:'Malgun Gothic','맑은 고딕',sans-serif; background:#ffffff;"">
+    <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""max-width:800px;"">
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <h1 style=""color:#1a1a2e; font-size:22px; margin:0 0 8px 0;"">Layer1 전수 집계 테이블 (2025-48)</h1>
+                <p style=""color:#666; font-size:12px; margin:0;"">생성 시각: 2026-01-03 23:24:28</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#6fa8dc; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            COMMON / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">대외 공유 자료 정리: 주간 이슈 3건에 대한 상태(원인/조치/ETA) 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 리포트 자동화: 메일 수집→청크화→집계 파이프라인 실행 로그 정리 및 개선사항 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주요 장비 알람 top3 정리 및 원인/조치 현황 공유</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">주간 이슈 리포트 포맷 점검 및 누락 항목(첨부/근거) 체크리스트 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">테스트 조건 점검: 신규 패턴 적용 후 false fail 증가 가능성 검토</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">모니터링 지표(Top loss bin) 대시보드 기준선 업데이트</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">현상 발생 조건(온도/패턴) 정리 및 추가 실험 계획 수립</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">변경점 관리: 영향 범위(라인/제품) 및 리스크 항목 정리</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1a
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 고객사 샘플 출하 일정 조율 및 스펙 문서 업데이트</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 수율 데이터 수집 파이프라인 신규 구축 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 전용 라인 신규 장비 셋업 진행률 85% 달성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">12G LPDDR5</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 라인 특정 Lot에서 불량 모드 A 재현 확인, 원인 후보 2건 도출</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">FA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 신규 불량 모드 TEM 분석 진행, bit line 단선 의심</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 공정 마진 확보를 위한 etch 조건 DOE 설계 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 제품 신뢰성 평가 결과: HTOL 1000hr 통과</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 레시피 v2.3 적용 후 수율 +0.8% 개선 확인</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">12G LPDDR5</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1a 관련 변경점 QA 관점 리스크 검토: 영향도/검증 항목 정리</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">QA팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 양산 전환 체크리스트 검토 및 승인 완료</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 테스트 프로그램 최적화: 테스트 시간 15% 단축</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G LPDDR</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">24G LPDDR 초도 양산 수율 92.3% 달성, 목표 대비 +2.3%p</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1b
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">16G DDR5</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">DT팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">분류 품질 점검: 도메인/테크 태깅 누락 케이스 샘플링 후 룰 보강 제안</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">16G DDR5</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">YIELD팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1b 수율 주간 추이 분석: 특정 공정 스텝에서 step yield 하락 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1c
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">12G LPDDR5X</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PE팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1c 공정 조건 최적화: PR step 조건 변경 시 defect density 개선 경향 확인</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#81c784; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            DRAM / 1d
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">24G DDR5</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">EQUIP팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">1d 장비 PM 이슈: chamber B 압력 변동 로그 확인, 교정 및 모니터링 강화</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 공통
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">신규 fail mode 분류 기준(초안) 공유 및 의견 수렴 요청</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;""></td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">공정 레시피 버전 관리 기준 업데이트(초안) 배포</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 256
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">512Gb TLC</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">TEST팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">256 제품에서 scan 실패 사례 3건 분석, 재현 시나리오 확보</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 312
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">1Tb QLC</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">CS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">고객 이슈 대응: 312 제품 현상 요약 및 고객 문의 Q/A 초안 작성</td>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">1Tb QLC</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PI팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">312 제품 PI 이슈: 특정 패턴에서 read disturb 경향 확인, 추가 DOE 진행 예정</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style=""padding-bottom:20px;"">
+                <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                    <tr>
+                        <td style=""background:#ffb74d; color:white; padding:10px 14px; font-size:14px; font-weight:bold;"">
+                            NAND / 400
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""1"" style=""border-collapse:collapse; border-color:#ddd;"">
+                                <tr style=""background:#f5f5f5;"">
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:100px; border:1px solid #ddd;"">Product</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; width:80px; border:1px solid #ddd;"">팀</th>
+                                    <th style=""padding:8px 10px; text-align:left; font-size:12px; border:1px solid #ddd;"">업무 내용</th>
+                                </tr>
+                                <tr>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">2Tb QLC</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; border:1px solid #ddd; background:#fafafa;"">PROCESS팀</td>
+                                    <td style=""padding:8px 10px; font-size:12px; color:#333; line-height:1.5; border:1px solid #ddd;"">400 공정 변경 검토: etch 조건 변경안 시뮬레이션 결과 공유, 실라인 적용 일정 논의 필요</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"
