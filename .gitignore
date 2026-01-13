@@ -47,3 +47,4 @@ wads_agent_html/layer1_2025-48_20260103_232428.html
 frontend/src/vite-env.d.ts
 .gitignore
 backend/app/data/lot_status.csv
+pyproject.toml

@@ -1,0 +1,12 @@
+{
+  // Cursor/VSCode에서 Markdown(*.md)이 특정 “preview editor”로 강제 연결되면
+  // 에디터가 깨졌을 때 md 파일이 전부 안 열리는 현상이 발생할 수 있어
+  // 워크스페이스에서는 기본 텍스트 에디터로 열리도록 고정합니다.
+  "workbench.editorAssociations": {
+    "*.md": "default"
+  },
+  // 가능하면 md는 소스 편집기로 열고, 미리보기는 사용자가 필요할 때만 띄우도록
+  "markdown.preview.openMarkdownLinks": "inEditor"
+}
+
+

@@ -17,6 +17,7 @@ dependencies = [
     "langchain-experimental>=0.3.4",
     "langchain-mcp-adapters>=0.1.9",
     "langchain-openai>=0.3.28",
+    "langfuse>=2.0.0",
     "langchain-tavily>=0.2.11",
     "langchain-teddynote>=0.4",
     "langgraph>=0.5.4",
