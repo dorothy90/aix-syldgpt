@@ -10,7 +10,6 @@ from langgraph.graph import StateGraph, START, END, MessagesState
 
 from openrouter_llm import get_llm
 from tools import load_and_filter_csv, create_chart
-from langfuse_instrumentation import invoke_with_langfuse
 
 
 # =============================================================================
@@ -23,9 +22,27 @@ def filter_csv(oper: str = None, para: str = None) -> str:
     """CSV 파일에서 oper, para 조건으로 데이터를 필터링합니다.
 
     Args:
-        oper: 필터링할 oper 값 (예: OP001, OP002)
-        para: 필터링할 para 값 (예: TEMP, PRESSURE, HUMIDITY)
+        oper: 필터링할 공정코드 (예: GT PLUG ETCH CD, BLC ETCH CD HV)
+        para: 필터링할 파라미터 (예: CD_TOP, DEPTH, TEMP)
     """
+    # #region agent log
+    import json
+
+    open(
+        "/Users/daehwankim/Documents/langgraph-tutorial-main/.cursor/debug.log", "a"
+    ).write(
+        json.dumps(
+            {
+                "location": "main.py:filter_csv",
+                "message": "filter_csv TOOL CALLED",
+                "data": {"oper": oper, "para": para},
+                "hypothesisId": "B",
+                "timestamp": __import__("time").time(),
+            }
+        )
+        + "\n"
+    )
+    # #endregion
     return load_and_filter_csv(oper=oper, para=para)
 
 
@@ -34,8 +51,8 @@ def generate_chart(oper: str, para: str, chart_type: str = "line") -> str:
     """시계열 데이터를 차트로 시각화합니다.
 
     Args:
-        oper: 조회할 oper 값 (예: OP001)
-        para: 조회할 para 값 (예: TEMP, PRESSURE)
+        oper: 조회할 공정코드 (예: GT PLUG ETCH CD, BLC ETCH CD HV)
+        para: 조회할 파라미터 (예: CD_TOP, DEPTH, TEMP)
         chart_type: 차트 유형 (line 또는 bar)
     """
     return create_chart(oper=oper, para=para, chart_type=chart_type)
@@ -59,12 +76,18 @@ def create_agents():
             "당신은 CSV 데이터 필터링 전문 에이전트입니다.\n\n"
             "역할:\n"
             "- filter_data.csv 파일에서 사용자가 요청한 조건으로 데이터를 필터링합니다.\n"
-            "- oper(운영코드)와 para(파라미터) 기준으로 필터링할 수 있습니다.\n\n"
-            "사용 가능한 값:\n"
-            "- oper: OP001, OP002, OP003, OP004, OP005, OP006, OP007\n"
-            "- para: TEMP, PRESSURE, HUMIDITY, FLOW, VOLTAGE, CURRENT, VIBRATION, SPEED\n\n"
+            "- oper(공정코드)와 para(파라미터) 기준으로 필터링할 수 있습니다.\n\n"
+            "사용 가능한 oper 예시 (반도체 공정명):\n"
+            "- GT PLUG ETCH CD, BLC ETCH CD HV, STI CMP THK, METAL CVD RATE\n"
+            "- GATE OX THK, SPACER DEP CD, ILD CMP UNIF, CONTACT ETCH DEPTH\n"
+            "- PMD DEP RATE, BARRIER ALD THK, W PLUG FILL, POLY ETCH CD\n"
+            "- HM STRIP RATE, DIFF ANNEAL TEMP, ION IMP DOSE\n\n"
+            "사용 가능한 para 예시:\n"
+            "- CD_TOP, CD_BTM, CD_MID, CD, DEPTH, THK, TEMP, PRESSURE\n"
+            "- UNIFORMITY, DEP_RATE, REMOVAL_RATE, VOLTAGE, CURRENT 등\n\n"
             "규칙:\n"
-            "- 필터링 작업만 수행하세요.\n"
+            "- 사용자가 요청한 값을 그대로 사용하여 필터링하세요.\n"
+            "- 반드시 filter_csv 도구를 호출하여 실제 데이터를 조회하세요.\n"
             "- 결과를 명확하게 보고하세요."
         ),
         name="filter_agent",
@@ -78,16 +101,17 @@ def create_agents():
             "당신은 데이터 시각화 전문 에이전트입니다.\n\n"
             "역할:\n"
             "- timeseries_data.csv 파일의 시계열 데이터를 차트로 시각화합니다.\n"
-            "- oper와 para를 지정하여 해당 데이터의 시계열 그래프를 생성합니다.\n\n"
-            "사용 가능한 데이터:\n"
-            "- OP001: TEMP, PRESSURE\n"
-            "- OP002: TEMP, HUMIDITY\n"
-            "- OP003: FLOW\n\n"
+            "- oper(공정코드)와 para(파라미터)를 지정하여 시계열 그래프를 생성합니다.\n\n"
+            "사용 가능한 oper 예시 (반도체 공정명):\n"
+            "- GT PLUG ETCH CD, BLC ETCH CD HV, STI CMP THK, METAL CVD RATE 등\n\n"
+            "사용 가능한 para 예시:\n"
+            "- CD_TOP, CD_BTM, DEPTH, THK, TEMP, PRESSURE, UNIFORMITY 등\n\n"
             "차트 유형:\n"
             "- line: 선 그래프 (기본)\n"
             "- bar: 막대 그래프\n\n"
             "규칙:\n"
-            "- 시각화 작업만 수행하세요.\n"
+            "- 사용자가 요청한 값을 그대로 사용하여 차트를 생성하세요.\n"
+            "- 반드시 generate_chart 도구를 호출하세요.\n"
             "- 생성된 차트 파일 경로를 보고하세요."
         ),
         name="viz_agent",
@@ -165,16 +189,7 @@ def run_query(query: str):
 
     supervisor = create_supervisor_graph()
 
-    # 간단한 태깅(검색/필터 편의용)
-    tags = []
-    if any(k in query for k in ["연관", "관련", "related"]):
-        tags.append("relation")
-    if any(k in query for k in ["그래프", "차트", "시각화", "plot", "trend", "시계열"]):
-        tags.append("viz")
-    if not tags:
-        tags.append("filter")
-
-    result = invoke_with_langfuse(supervisor, query, tags=tags)
+    result = supervisor.invoke({"messages": [{"role": "user", "content": query}]})
 
     # 최종 응답 출력
     final_response = result["messages"][-1].content
@@ -187,9 +202,9 @@ def run_query(query: str):
 if __name__ == "__main__":
     # 테스트 쿼리
     test_queries = [
-        "oper가 OP001인 데이터를 보여줘",
-        "OP001의 TEMP 값을 시계열 그래프로 그려줘",
-        "OP002의 HUMIDITY 데이터를 막대그래프로 시각화해줘",
+        "oper가 GT PLUG ETCH CD인 데이터를 보여줘",
+        # "OP001의 TEMP 값을 시계열 그래프로 그려줘",
+        # "OP002의 HUMIDITY 데이터를 막대그래프로 시각화해줘",
     ]
 
     print("\n🤖 CSV Supervisor Multi-Agent 시스템 테스트\n")

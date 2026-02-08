@@ -21,7 +21,7 @@ opensearch_client = OpenSearch(
     ],
     http_auth=(
         os.getenv("OPENSEARCH_USER", "admin"),
-        os.getenv("OPENSEARCH_PASSWORD", "admin"),
+        os.getenv("OPENSEARCH_PASSWORD", "rlaeorka1!K"),
     ),
     use_ssl=os.getenv("OPENSEARCH_USE_SSL", "false").lower() == "true",
     verify_certs=False,
@@ -45,13 +45,20 @@ class UniversalOpenSearchRetriever:
     """OpenSearch에서 직접 하이브리드 검색하는 범용 Retriever"""
 
     def __init__(
-        self, client, embedder, top_k=3, keyword_weight=0.3, semantic_weight=0.7
+        self,
+        client,
+        embedder,
+        top_k=3,
+        keyword_weight=0.3,
+        semantic_weight=0.7,
+        rrf_k=60,
     ):
         self.client = client
         self.embedder = embedder
         self.top_k = top_k
         self.keyword_weight = keyword_weight
         self.semantic_weight = semantic_weight
+        self.rrf_k = int(os.getenv("RRF_K", str(rrf_k)))
         self.index = OPENSEARCH_INDEX
         self.embedding_field = OPENSEARCH_EMBEDDING_FIELD
 
@@ -65,8 +72,11 @@ class UniversalOpenSearchRetriever:
             os.getenv("KNN_EXPANSION_K", "5")
         )  # 각 문서당 확장할 이웃 수
         self.expansion_limit = int(
-            os.getenv("KNN_EXPANSION_LIMIT", "10")
+            os.getenv("KNN_EXPANSION_LIMIT", "30")
         )  # 최대 확장 문서 수
+        self.expansion_target = int(
+            os.getenv("KNN_EXPANSION_TARGET", "10")
+        )  # 확장 대상 문서 수
 
     def _normalize_text(self, text: str) -> str:
         """텍스트 정규화"""
@@ -74,24 +84,30 @@ class UniversalOpenSearchRetriever:
         q = "\n".join(line.rstrip() for line in q.split("\n")).strip()
         return q.casefold()
 
-    def _normalize_scores(self, hits):
-        """검색 결과의 score를 0-1로 정규화"""
-        if not hits:
-            return []
+    def _rrf_fusion(self, keyword_hits, semantic_hits):
+        """Weighted RRF(Reciprocal Rank Fusion) 기반 스코어 퓨전
 
-        scores = [hit["_score"] for hit in hits]
-        min_score = min(scores)
-        max_score = max(scores)
+        점수가 아닌 순위 기반으로 합산하므로
+        BM25/kNN 스코어 스케일 차이에 영향받지 않음.
+        keyword_weight/semantic_weight로 각 소스의 비중 조절 가능.
+        """
+        doc_scores = {}
 
-        if max_score == min_score:
-            for hit in hits:
-                hit["_normalized_score"] = 1.0
-        else:
-            for hit in hits:
-                normalized = (hit["_score"] - min_score) / (max_score - min_score)
-                hit["_normalized_score"] = normalized
+        for rank, hit in enumerate(keyword_hits, start=1):
+            doc_id = hit["_id"]
+            doc_scores.setdefault(doc_id, {"score": 0.0, "hit": hit})
+            doc_scores[doc_id]["score"] += self.keyword_weight * (
+                1.0 / (self.rrf_k + rank)
+            )
 
-        return hits
+        for rank, hit in enumerate(semantic_hits, start=1):
+            doc_id = hit["_id"]
+            doc_scores.setdefault(doc_id, {"score": 0.0, "hit": hit})
+            doc_scores[doc_id]["score"] += self.semantic_weight * (
+                1.0 / (self.rrf_k + rank)
+            )
+
+        return doc_scores
 
     def _keyword_search(self, query: str, size: int, doc_type_filter=None):
         """BM25 키워드 검색"""
@@ -100,6 +116,7 @@ class UniversalOpenSearchRetriever:
                 "query": query,
                 "fields": ["page_content"],
                 "type": "best_fields",
+                "analyzer": "korean",
             }
         }
 
@@ -158,7 +175,7 @@ class UniversalOpenSearchRetriever:
             search_mode: "hybrid" (기본), "semantic", "keyword"
         """
         k = top_k if top_k is not None else self.top_k
-        fetch_size = k * 2  # 더 많이 가져와서 재순위화
+        fetch_size = k * 3  # RRF는 후보 풀이 클수록 효과적
 
         # 쿼리 정규화 및 임베딩
         normalized_query = self._normalize_text(query_text)
@@ -180,37 +197,21 @@ class UniversalOpenSearchRetriever:
                 results = self._format_results(semantic_hits, "semantic")
 
             else:  # hybrid
-                # 하이브리드 검색
+                # 하이브리드 검색 (Weighted RRF)
                 query_embedding = self.embedder.embed_query(normalized_query)
 
                 # 1. 키워드 검색
                 keyword_hits = self._keyword_search(
                     normalized_query, fetch_size, doc_type_filter
                 )
-                keyword_hits = self._normalize_scores(keyword_hits)
 
                 # 2. 시맨틱 검색
                 semantic_hits = self._semantic_search(
                     query_embedding, fetch_size, doc_type_filter
                 )
-                semantic_hits = self._normalize_scores(semantic_hits)
 
-                # 3. 결과 병합
-                doc_scores = {}
-
-                for hit in keyword_hits:
-                    doc_id = hit["_id"]
-                    score = hit["_normalized_score"] * self.keyword_weight
-                    doc_scores[doc_id] = {"score": score, "hit": hit}
-
-                for hit in semantic_hits:
-                    doc_id = hit["_id"]
-                    score = hit["_normalized_score"] * self.semantic_weight
-
-                    if doc_id in doc_scores:
-                        doc_scores[doc_id]["score"] += score
-                    else:
-                        doc_scores[doc_id] = {"score": score, "hit": hit}
+                # 3. Weighted RRF 퓨전 (순위 기반, 스코어 스케일 무관)
+                doc_scores = self._rrf_fusion(keyword_hits, semantic_hits)
 
                 # 4. 정렬 및 상위 k개 선택
                 sorted_docs = sorted(
@@ -286,7 +287,9 @@ class UniversalOpenSearchRetriever:
         expanded_doc_ids = set()
 
         try:
-            for doc_id in doc_ids[:5]:  # 최대 5개 문서에 대해서만 확장 (성능 고려)
+            for doc_id in doc_ids[
+                : self.expansion_target
+            ]:  # 확장 대상 문서 수 (환경변수 KNN_EXPANSION_TARGET)
                 try:
                     # 해당 문서의 임베딩 가져오기
                     doc = self.client.get(
@@ -378,33 +381,34 @@ retriever = UniversalOpenSearchRetriever(
     top_k=retriever_top_k,
     keyword_weight=0.3,  # 키워드 30%
     semantic_weight=0.7,  # 시맨틱 70%
+    rrf_k=60,  # RRF 상수
 )
 
-# 검색 테스트
-query = """
-word2vec이 뭐야
-"""
+# # 검색 테스트
+# query = """
+# word2vec이 뭐야
+# """
 
-# 하이브리드 검색 (기본)
-print(f"\n[하이브리드 검색] 쿼리: '{query.strip()}'")
-results = retriever.search(query, top_k=5, search_mode="hybrid")
-for i, r in enumerate(results, 1):
-    print(f"\n{i}. [{r['metadata']['doc_type']}] {Path(r['metadata']['source']).name}")
-    print(f"   유사도: {r['similarity']:.4f}")
-    print(f"   내용: {r['content'][:150]}...")
+# # 하이브리드 검색 (기본)
+# print(f"\n[하이브리드 검색] 쿼리: '{query.strip()}'")
+# results = retriever.search(query, top_k=5, search_mode="hybrid")
+# for i, r in enumerate(results, 1):
+#     print(f"\n{i}. [{r['metadata']['doc_type']}] {Path(r['metadata']['source']).name}")
+#     print(f"   유사도: {r['similarity']:.4f}")
+#     print(f"   내용: {r['content'][:150]}...")
 
-# 시맨틱 검색만
-print(f"\n[시맨틱 검색만] 쿼리: '{query.strip()}'")
-semantic_results = retriever.search(query, top_k=5, search_mode="semantic")
-for i, r in enumerate(semantic_results, 1):
-    print(f"\n{i}. [{r['metadata']['doc_type']}] {Path(r['metadata']['source']).name}")
-    print(f"   유사도: {r['similarity']:.4f}")
+# # 시맨틱 검색만
+# print(f"\n[시맨틱 검색만] 쿼리: '{query.strip()}'")
+# semantic_results = retriever.search(query, top_k=5, search_mode="semantic")
+# for i, r in enumerate(semantic_results, 1):
+#     print(f"\n{i}. [{r['metadata']['doc_type']}] {Path(r['metadata']['source']).name}")
+#     print(f"   유사도: {r['similarity']:.4f}")
 
-# 특정 문서 타입만 검색
-print(f"\n[PPTX만 검색] 쿼리: '{query.strip()}'")
-pptx_results = retriever.search(query, top_k=3, doc_type_filter="pptx")
-for i, r in enumerate(pptx_results, 1):
-    print(f"\n{i}. 슬라이드 {r['metadata'].get('page_number')}")
-    print(f"   유사도: {r['similarity']:.4f}")
+# # 특정 문서 타입만 검색
+# print(f"\n[PPTX만 검색] 쿼리: '{query.strip()}'")
+# pptx_results = retriever.search(query, top_k=3, doc_type_filter="pptx")
+# for i, r in enumerate(pptx_results, 1):
+#     print(f"\n{i}. 슬라이드 {r['metadata'].get('page_number')}")
+#     print(f"   유사도: {r['similarity']:.4f}")
 
-# %%
+# # %%

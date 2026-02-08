@@ -48,3 +48,16 @@ frontend/src/vite-env.d.ts
 .gitignore
 backend/app/data/lot_status.csv
 pyproject.toml
+03-Modules/05-Supervisor/data/
+supervisor/data/
+supervisor/data/*
+03-Modules/05-Supervisor/gt_plug_etch_cd_plots/*
+langfuse
+test.py
+.vscode/settings.json
+03-Modules/05-Supervisor/02-LangGraph-Multi-Agent-Collaboration.ipynb
+03-Modules/05-Supervisor/03-LangGraph-Multi-Agent-Supervisor.ipynb
+03-Modules/05-Supervisor/korea_japan_gdp_per_capita.png
+backend/app/data/lot_status.csv
+supervisor/data/
+supervisor/main.py

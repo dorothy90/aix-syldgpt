@@ -21,6 +21,7 @@ def get_llm(model_name: str = None, temperature: float = 0) -> ChatOpenAI:
     base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 
     if model_name is None:
+        # model_name = os.getenv("OPENROUTER_MODEL", "gpt-oss-120b")
         model_name = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 
     return ChatOpenAI(
@@ -29,4 +30,3 @@ def get_llm(model_name: str = None, temperature: float = 0) -> ChatOpenAI:
         api_key=api_key,
         base_url=base_url,
     )
-
