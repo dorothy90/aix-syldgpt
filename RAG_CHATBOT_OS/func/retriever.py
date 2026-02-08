@@ -109,7 +109,7 @@ class UniversalOpenSearchRetriever:
 
         return doc_scores
 
-    def _keyword_search(self, query: str, size: int, doc_type_filter=None):
+    def _keyword_search(self, query: str, size: int, doc_type_filter=None, exclude_sources=None):
         """BM25 키워드 검색"""
         query_body = {
             "multi_match": {
@@ -120,14 +120,23 @@ class UniversalOpenSearchRetriever:
             }
         }
 
-        # doc_type 필터 추가
-        if doc_type_filter:
-            query_body = {
-                "bool": {
-                    "must": [query_body],
-                    "filter": [{"term": {"metadata.doc_type": doc_type_filter}}],
-                }
-            }
+        # bool 쿼리로 감싸기 (doc_type 필터 또는 exclude_sources가 있을 때)
+        if doc_type_filter or exclude_sources:
+            bool_query = {"bool": {"must": [query_body]}}
+
+            # doc_type 필터 추가
+            if doc_type_filter:
+                bool_query["bool"].setdefault("filter", []).append(
+                    {"term": {"metadata.doc_type": doc_type_filter}}
+                )
+
+            # metadata.source 제외 필터 추가
+            if exclude_sources:
+                bool_query["bool"]["must_not"] = [
+                    {"terms": {"metadata.source.keyword": exclude_sources}}
+                ]
+
+            query_body = bool_query
 
         search_body = {
             "size": size,
@@ -138,7 +147,7 @@ class UniversalOpenSearchRetriever:
         response = self.client.search(index=self.index, body=search_body)
         return response["hits"]["hits"]
 
-    def _semantic_search(self, query_embedding: list, size: int, doc_type_filter=None):
+    def _semantic_search(self, query_embedding: list, size: int, doc_type_filter=None, exclude_sources=None):
         """kNN 벡터 검색"""
         knn_query = {
             self.embedding_field: {
@@ -147,11 +156,31 @@ class UniversalOpenSearchRetriever:
             }
         }
 
+        # kNN 필터 조건 구성
+        knn_filter_clauses = []
+
         # doc_type 필터 추가
         if doc_type_filter:
-            knn_query[self.embedding_field]["filter"] = {
-                "term": {"metadata.doc_type": doc_type_filter}
-            }
+            knn_filter_clauses.append({"term": {"metadata.doc_type": doc_type_filter}})
+
+        # metadata.source 제외 필터 추가
+        if exclude_sources:
+            knn_filter_clauses.append({
+                "bool": {
+                    "must_not": [
+                        {"terms": {"metadata.source.keyword": exclude_sources}}
+                    ]
+                }
+            })
+
+        # 필터가 있으면 kNN 쿼리에 추가
+        if knn_filter_clauses:
+            if len(knn_filter_clauses) == 1:
+                knn_query[self.embedding_field]["filter"] = knn_filter_clauses[0]
+            else:
+                knn_query[self.embedding_field]["filter"] = {
+                    "bool": {"must": knn_filter_clauses}
+                }
 
         search_body = {
             "size": size,
@@ -163,7 +192,7 @@ class UniversalOpenSearchRetriever:
         return response["hits"]["hits"]
 
     def search(
-        self, query_text, top_k=None, doc_type_filter=None, search_mode="hybrid"
+        self, query_text, top_k=None, doc_type_filter=None, exclude_sources=None, search_mode="hybrid"
     ):
         """
         쿼리와 유사한 문서 검색
@@ -172,6 +201,7 @@ class UniversalOpenSearchRetriever:
             query_text: 검색 쿼리
             top_k: 반환할 문서 수
             doc_type_filter: 특정 문서 타입만 필터링 (예: "pptx", "excel", "pdf")
+            exclude_sources: 제외할 metadata.source 값 리스트 (예: ["file1.pdf", "file2.pptx"])
             search_mode: "hybrid" (기본), "semantic", "keyword"
         """
         k = top_k if top_k is not None else self.top_k
@@ -184,7 +214,7 @@ class UniversalOpenSearchRetriever:
             if search_mode == "keyword":
                 # 키워드 검색만
                 keyword_hits = self._keyword_search(
-                    normalized_query, k, doc_type_filter
+                    normalized_query, k, doc_type_filter, exclude_sources
                 )
                 results = self._format_results(keyword_hits, "keyword")
 
@@ -192,7 +222,7 @@ class UniversalOpenSearchRetriever:
                 # 시맨틱 검색만
                 query_embedding = self.embedder.embed_query(normalized_query)
                 semantic_hits = self._semantic_search(
-                    query_embedding, k, doc_type_filter
+                    query_embedding, k, doc_type_filter, exclude_sources
                 )
                 results = self._format_results(semantic_hits, "semantic")
 
@@ -202,12 +232,12 @@ class UniversalOpenSearchRetriever:
 
                 # 1. 키워드 검색
                 keyword_hits = self._keyword_search(
-                    normalized_query, fetch_size, doc_type_filter
+                    normalized_query, fetch_size, doc_type_filter, exclude_sources
                 )
 
                 # 2. 시맨틱 검색
                 semantic_hits = self._semantic_search(
-                    query_embedding, fetch_size, doc_type_filter
+                    query_embedding, fetch_size, doc_type_filter, exclude_sources
                 )
 
                 # 3. Weighted RRF 퓨전 (순위 기반, 스코어 스케일 무관)
@@ -353,10 +383,10 @@ class UniversalOpenSearchRetriever:
             traceback.print_exc()
             return []
 
-    def invoke(self, query_text, doc_type_filter=None, search_mode="hybrid"):
+    def invoke(self, query_text, doc_type_filter=None, exclude_sources=None, search_mode="hybrid"):
         """LangChain 호환 인터페이스"""
         results = self.search(
-            query_text, doc_type_filter=doc_type_filter, search_mode=search_mode
+            query_text, doc_type_filter=doc_type_filter, exclude_sources=exclude_sources, search_mode=search_mode
         )
         return [
             Document(
